@@ -203,6 +203,17 @@ $result = mysqli_query($koneksi, "SELECT * FROM data_karyawan");
   </div>
 </div>
 
+<div id="modalHapus" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+    <div class="bg-white rounded-lg shadow-lg w-full max-w-sm p-6 text-center">
+      <h2 class="text-xl font-semibold text-gray-800 mb-4">Konfirmasi Hapus</h2>
+      <p class="text-gray-600 mb-6">Apakah Anda yakin ingin menghapus data ini?</p>
+      <div class="flex justify-center space-x-4">
+        <button onclick="closeModalHapus()" class="bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-800">Batal</button>
+        <button id="btnConfirmHapus" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">Hapus</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     // ===== Modal Tambah =====
     function openModalTambah() { document.getElementById('modalTambah').classList.remove('hidden'); }
@@ -218,6 +229,16 @@ $result = mysqli_query($koneksi, "SELECT * FROM data_karyawan");
       document.getElementById('modalEdit').classList.remove('hidden');
     }
     function closeModalEdit() { document.getElementById('modalEdit').classList.add('hidden'); }
+
+  let idGajiHapus = null;
+  function hapusData(id) {
+    idGajiHapus = id;
+    document.getElementById('modalHapus').classList.remove('hidden');
+  }
+  function closeModalHapus() {
+    document.getElementById('modalHapus').classList.add('hidden');
+    idGajiHapus = null;
+  }
 
     // Tambah data
     document.getElementById('formTambah').addEventListener('submit', function(e) {
