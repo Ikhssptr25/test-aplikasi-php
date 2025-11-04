@@ -53,3 +53,39 @@ test('can delete karyawan data', function () {
     $check = mysqli_query($this->koneksi, "SELECT * FROM data_karyawan WHERE id='$id'");
     expect(mysqli_num_rows($check))->toBe(0);
 });
+
+// 🧪 Negative Test Case Section
+
+test('cannot insert karyawan dengan data kosong', function () {
+    $query = "INSERT INTO data_karyawan (nama, jabatan, alamat, no_telp)
+              VALUES ('', '', '', '')";
+
+    mysqli_query($this->koneksi, $query);
+    $id = mysqli_insert_id($this->koneksi);
+
+    // Cek apakah data benar-benar tidak tersimpan (seharusnya kosong)
+    $check = mysqli_query($this->koneksi, "SELECT * FROM data_karyawan WHERE id='$id'");
+    $data = mysqli_fetch_assoc($check);
+
+    expect(trim($data['nama']))->not->toBe('');
+    expect(trim($data['jabatan']))->not->toBe('');
+    expect(trim($data['alamat']))->not->toBe('');
+    expect(trim($data['no_telp']))->not->toBe('');
+
+});
+
+test('cannot update karyawan dengan id tidak valid', function () {
+    $id_tidak_ada = 999999;
+    $query = "UPDATE data_karyawan SET nama='Nama Tidak Valid' WHERE id='$id_tidak_ada'";
+
+    $update = mysqli_query($this->koneksi, $query);
+    // mysqli_query akan return true walau tidak ada baris berubah, jadi kita cek affected rows
+    expect(mysqli_affected_rows($this->koneksi))->toBe(0);
+});
+
+test('cannot delete karyawan dengan id tidak valid', function () {
+    $id_tidak_ada = 999999;
+    $delete = mysqli_query($this->koneksi, "DELETE FROM data_karyawan WHERE id='$id_tidak_ada'");
+
+    expect(mysqli_affected_rows($this->koneksi))->toBe(0);
+});

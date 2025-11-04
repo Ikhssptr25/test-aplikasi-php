@@ -65,3 +65,42 @@ test('can delete gaji karyawan', function () {
     $check = mysqli_query($this->koneksi, "SELECT * FROM gaji_karyawan WHERE id_gaji='$id_gaji'");
     expect(mysqli_num_rows($check))->toBe(0);
 });
+
+
+// 🧪 Negative Test Case Section
+// ------------------------------------------------------------
+
+test('cannot update gaji dengan id_gaji tidak valid', function () {
+    $id_gaji_tidak_ada = 999999;
+    $query = "UPDATE gaji_karyawan SET bulan='Januari 2026' WHERE id_gaji='$id_gaji_tidak_ada'";
+    $update = mysqli_query($this->koneksi, $query);
+
+    // mysqli_query bisa true meski 0 row affected, jadi pastikan tidak ada perubahan
+    $affected = mysqli_affected_rows($this->koneksi);
+    expect($affected)->toBe(0);
+});
+
+test('cannot insert gaji dengan id_karyawan tidak valid', function () {
+    $id_karyawan_tidak_ada = 999999; // asumsikan tidak ada
+    $query = "INSERT INTO gaji_karyawan (id_karyawan, bulan, gaji_pokok, tunjangan, potongan, total_gaji)
+              VALUES ('$id_karyawan_tidak_ada', 'November 2025', 3000000, 500000, 200000, 3300000)";
+
+    try {
+        mysqli_query($this->koneksi, $query);
+        $this->fail('Seharusnya gagal karena foreign key tidak valid');
+    } catch (mysqli_sql_exception $e) {
+        expect($e->getMessage())->toContain('foreign key');
+    }
+});
+
+test('cannot insert gaji dengan data kosong', function () {
+    $query = "INSERT INTO gaji_karyawan (id_karyawan, bulan, gaji_pokok, tunjangan, potongan, total_gaji)
+              VALUES ('', '', '', '', '', '')";
+
+    try {
+        mysqli_query($this->koneksi, $query);
+        $this->fail('Seharusnya gagal karena kolom kosong');
+    } catch (mysqli_sql_exception $e) {
+        expect($e->getMessage())->toContain('foreign key');
+    }
+});

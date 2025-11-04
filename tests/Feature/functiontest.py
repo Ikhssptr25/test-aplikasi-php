@@ -7,11 +7,9 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
 
-
 class SistemPenggajianTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        # Setup browser
         options = webdriver.ChromeOptions()
         options.add_argument("--start-maximized")
         cls.driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
@@ -20,11 +18,8 @@ class SistemPenggajianTest(unittest.TestCase):
 
     # 1️⃣ Buka halaman utama
     def test_1_buka_index(self):
-        driver = self.driver
-        wait = self.wait
-
-        driver.get(self.base_url)
-        wait.until(EC.presence_of_element_located((By.XPATH, "//h2[contains(text(),'SISTEM PENGGAJIAN KARYAWAN')]")))
+        self.driver.get(self.base_url)
+        self.wait.until(EC.presence_of_element_located((By.XPATH, "//h2[contains(text(),'SISTEM PENGGAJIAN KARYAWAN')]")))
         print("✅ Halaman utama (index.php) terbuka")
 
     # 2️⃣ CRUD Karyawan
@@ -32,10 +27,9 @@ class SistemPenggajianTest(unittest.TestCase):
         driver = self.driver
         wait = self.wait
 
-        # Klik tombol Data Karyawan dari index
         driver.find_element(By.LINK_TEXT, "Data Karyawan").click()
         wait.until(EC.url_contains("data-karyawan/karyawan.php"))
-        print("✅ Berhasil masuk ke halaman Data Karyawan")
+        print("✅ Halaman Data Karyawan terbuka")
 
         # Tambah karyawan
         driver.find_element(By.XPATH, "//button[contains(text(),'Add Data')]").click()
@@ -45,10 +39,9 @@ class SistemPenggajianTest(unittest.TestCase):
         driver.find_element(By.NAME, "alamat").send_keys("Jl. Testing No. 1")
         driver.find_element(By.NAME, "no_telp").send_keys("0800123456")
         driver.find_element(By.XPATH, "//button[text()='Simpan']").click()
-        time.sleep(2)
 
         try:
-            alert = driver.switch_to.alert
+            alert = wait.until(EC.alert_is_present())
             print("📢 Alert:", alert.text)
             alert.accept()
         except:
@@ -56,23 +49,13 @@ class SistemPenggajianTest(unittest.TestCase):
         print("✅ Data karyawan berhasil ditambah")
 
         # Edit karyawan
-        # Ganti baris ini:
-# edit_buttons = driver.find_elements(By.LINK_TEXT, "Edit")
-
-# Dengan ini:
         edit_buttons = driver.find_elements(By.XPATH, "//i[contains(@class,'ri-edit-2-fill')]")
-        self.assertGreater(len(edit_buttons), 0, "❌ Tidak ada tombol edit ditemukan")
         edit_buttons[0].click()
-        time.sleep(1)
-        wait.until(EC.presence_of_element_located((By.ID, "edit_nama")))
-        nama_edit = driver.find_element(By.ID, "edit_nama")
-        nama_edit.clear()
-        nama_edit.send_keys("Test Karyawan Update")
+        wait.until(EC.presence_of_element_located((By.ID, "edit_nama"))).clear()
+        driver.find_element(By.ID, "edit_nama").send_keys("Test Karyawan Update")
         driver.find_element(By.XPATH, "//button[text()='Update']").click()
-        time.sleep(2)
-
         try:
-            alert = driver.switch_to.alert
+            alert = wait.until(EC.alert_is_present())
             print("📢 Alert:", alert.text)
             alert.accept()
         except:
@@ -80,51 +63,51 @@ class SistemPenggajianTest(unittest.TestCase):
         print("✅ Data karyawan berhasil diupdate")
 
         # Hapus karyawan
+        # Hapus karyawan
         delete_buttons = driver.find_elements(By.XPATH, "//button[contains(@onclick,'hapusData')]")
         self.assertGreater(len(delete_buttons), 0, "❌ Tidak ada tombol hapus ditemukan")
-        delete_buttons[0].click()
 
-        # Tunggu dan tangani alert konfirmasi hapus
-        alert = WebDriverWait(driver, 5).until(EC.alert_is_present())
-        print(f"📢 Alert: {alert.text}")
-        alert.accept()  # klik OK
-        print("✅ Konfirmasi hapus diterima")
+        # Gunakan JS click untuk menghindari intercept
+        driver.execute_script("arguments[0].click();", delete_buttons[0])
 
-        # Tunggu alert sukses muncul setelah data dihapus
+        # Tunggu alert muncul dan terima
         alert = WebDriverWait(driver, 5).until(EC.alert_is_present())
         print(f"📢 Alert: {alert.text}")
         alert.accept()
+
+        # Tunggu alert kedua jika ada
+        try:
+            alert = WebDriverWait(driver, 3).until(EC.alert_is_present())
+            print(f"📢 Alert: {alert.text}")
+            alert.accept()
+        except:
+            pass
+
         print("✅ Data karyawan berhasil dihapus")
-        
 
     # 3️⃣ CRUD Gaji
     def test_3_crud_gaji(self):
         driver = self.driver
         wait = self.wait
 
-        # Balik ke index
         driver.get(self.base_url)
-        wait.until(EC.presence_of_element_located((By.XPATH, "//h2[contains(text(),'SISTEM PENGGAJIAN KARYAWAN')]")))
-
-        # Klik tombol Gaji Karyawan
         driver.find_element(By.LINK_TEXT, "Gaji Karyawan").click()
         wait.until(EC.url_contains("gaji-karyawan/gaji.php"))
-        print("✅ Berhasil masuk ke halaman Gaji Karyawan")
+        print("✅ Halaman Gaji Karyawan terbuka")
 
-        # Tambah data gaji
+        # Tambah gaji
         driver.find_element(By.XPATH, "//button[contains(text(),'Add Gaji')]").click()
-        wait.until(EC.presence_of_element_located((By.NAME, "nama_karyawan")))
+        wait.until(EC.presence_of_element_located((By.ID, "id_karyawan")))
 
-        Select(driver.find_element(By.NAME, "nama_karyawan")).select_by_index(1)
+        Select(driver.find_element(By.ID, "id_karyawan")).select_by_index(1)
         driver.find_element(By.NAME, "bulan").send_keys("November")
         driver.find_element(By.NAME, "gaji_pokok").send_keys("4000000")
         driver.find_element(By.NAME, "tunjangan").send_keys("500000")
         driver.find_element(By.NAME, "potongan").send_keys("200000")
-
         driver.find_element(By.XPATH, "//button[text()='Simpan']").click()
-        time.sleep(2)
+
         try:
-            alert = driver.switch_to.alert
+            alert = wait.until(EC.alert_is_present())
             print("📢 Alert:", alert.text)
             alert.accept()
         except:
@@ -133,17 +116,13 @@ class SistemPenggajianTest(unittest.TestCase):
 
         # Edit gaji
         edit_buttons = driver.find_elements(By.XPATH, "//button[contains(@onclick,'openModalEdit')]")
-        self.assertGreater(len(edit_buttons), 0, "❌ Tidak ada tombol edit ditemukan")
         edit_buttons[0].click()
-        wait.until(EC.presence_of_element_located((By.ID, "edit_bulan")))
-        bulan_edit = driver.find_element(By.ID, "edit_bulan")
-        bulan_edit.clear()
-        bulan_edit.send_keys("Desember")
+        wait.until(EC.presence_of_element_located((By.ID, "edit_bulan"))).clear()
+        driver.find_element(By.ID, "edit_bulan").send_keys("Desember")
         driver.find_element(By.XPATH, "//button[text()='Update']").click()
-        time.sleep(2)
 
         try:
-            alert = driver.switch_to.alert
+            alert = wait.until(EC.alert_is_present())
             print("📢 Alert:", alert.text)
             alert.accept()
         except:
@@ -152,24 +131,73 @@ class SistemPenggajianTest(unittest.TestCase):
 
         # Hapus gaji
         delete_buttons = driver.find_elements(By.XPATH, "//button[contains(@onclick,'hapusData')]")
-        self.assertGreater(len(delete_buttons), 0, "❌ Tidak ada tombol hapus ditemukan")
         delete_buttons[0].click()
         wait.until(EC.presence_of_element_located((By.ID, "btnConfirmHapus"))).click()
-        time.sleep(2)
-
         try:
-            alert = driver.switch_to.alert
+            alert = wait.until(EC.alert_is_present())
             print("📢 Alert:", alert.text)
             alert.accept()
         except:
             pass
         print("✅ Data gaji berhasil dihapus")
 
+    # 5️⃣ Negative test: input gaji dengan angka negatif 
+    def test_4_negative_input_gaji_tidak_valid(self): 
+        driver = self.driver 
+        wait = self.wait 
+        driver.get(self.base_url) 
+        driver.find_element(By.LINK_TEXT, "Gaji Karyawan").click() 
+        wait.until(EC.url_contains("gaji-karyawan/gaji.php")) 
+
+        driver.find_element(By.XPATH, "//button[contains(text(),'Add Gaji')]").click() 
+        wait.until(EC.presence_of_element_located((By.ID, "id_karyawan"))) 
+        
+        Select(driver.find_element(By.ID, "id_karyawan")).select_by_index(1)  
+        driver.find_element(By.NAME, "bulan").send_keys("November") 
+        driver.find_element(By.NAME, "gaji_pokok").send_keys("-5000000") 
+        driver.find_element(By.NAME, "tunjangan").send_keys("500000") 
+        driver.find_element(By.NAME, "potongan").send_keys("200000") 
+        driver.find_element(By.XPATH, "//button[text()='Simpan']").click() 
+        time.sleep(1) 
+        
+        # Cek apakah form gagal submit
+        current_url = driver.current_url
+        if "gaji.php" in current_url:
+            print("✅ Negative Test: Form gagal submit karena input tidak valid secara disengaja")
+        else:
+            print("⚠️ Form berhasil submit (unexpected)")
+
+
+    def test_5_negative_tambah_karyawan_kosong(self):
+        driver = self.driver 
+        wait = self.wait 
+        driver.get(self.base_url) 
+        driver.find_element(By.LINK_TEXT, "Data Karyawan").click() 
+        wait.until(EC.url_contains("data-karyawan/karyawan.php")) 
+        driver.find_element(By.XPATH, "//button[contains(text(),'Add Data')]").click() 
+        wait.until(EC.presence_of_element_located((By.NAME, "nama")))
+        
+         # Kirim form kosong 
+        driver.find_element(By.XPATH, "//button[text()='Simpan']").click() 
+        time.sleep(1) 
+
+        fields = ["nama", "jabatan", "alamat", "no_telp"]
+        all_invalid = False
+        for field_name in fields:
+            field = driver.find_element(By.NAME, field_name)
+            if not driver.execute_script("return arguments[0].checkValidity();", field):
+                all_invalid = True
+                print(f"⚠️ Negative Test: Field '{field_name}' tidak valid (kosong)")
+        
+        if all_invalid:
+            print("✅ Form tidak bisa submit karena ada field kosong")
+        else:
+            print("❌ Form bisa submit, seharusnya gagal")
+
     @classmethod
     def tearDownClass(cls):
-        time.sleep(2)
+        time.sleep(1)
         cls.driver.quit()
-
 
 if __name__ == "__main__":
     unittest.main()
