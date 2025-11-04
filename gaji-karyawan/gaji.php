@@ -1,5 +1,5 @@
 <?php
-include "../database/koneksi.php";
+include_once "../database/koneksi.php";
 ?>
 
 <!DOCTYPE html>
@@ -20,19 +20,34 @@ include "../database/koneksi.php";
     <img src="../assets/logo.png" alt="Logo" class="w-110 h-14 px-10">
   </header>
 
-  <!-- Navigasi -->
-  <div class="flex justify-start space-x-2 mt-20 px-16">
-    <a href="../index.php" class="bg-black text-white px-5 py-2 font-semibold  hover:bg-gray-800 transition">Kembali</a>
-    <a href="../data-karyawan/karyawan.php" class="bg-white text-green-600 border border-green-600 px-5 py-2 font-semibold hover:bg-green-50 transition">Data Karyawan</a>
-  </div>
 
-  <!-- Main -->
-  <main class="flex-1 flex justify-center items-start mt-4 px-6">
-    <div class="bg-white shadow-lg w-full max-w-6xl p-8">
-      <div class="flex justify-between items-center mb-6">
-        <h2 class="text-lg font-bold tracking-widest text-gray-800 border-b pb-2">KELOLA GAJI KARYAWAN</h2>
-        <button onclick="openModalTambah()" class="bg-green-600 hover:bg-green-700 text-white font-medium px-5 py-2 rounded-full shadow">
-          <i class=" mr-1"></i> Add Gaji
+ <!-- Main -->
+<main class="flex-1 px-4 md:px-10 py-10">
+  <!-- Container utama: tombol + card di dalam sini -->
+  <div class="w-full max-w-6xl mx-auto">
+
+    <!-- Tombol navigasi -->
+    <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mb-6">
+      <a href="../index.php"
+         class="w-full sm:w-auto text-center bg-black text-white px-5 py-2 font-semibold hover:bg-gray-800 transition rounded-sm">
+        Kembali
+      </a>
+
+      <a href="../data-karyawan/karyawan.php"
+         class="w-full sm:w-auto text-center bg-white text-green-600 border border-green-600 px-5 py-2 font-semibold hover:bg-green-50 transition rounded-sm">
+        Data Karyawan
+      </a>
+    </div>
+
+    <!-- Card Kelola Gaji -->
+    <div class="bg-white shadow-lg w-full p-8 rounded-md">
+      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-6">
+        <h2 class="text-lg font-bold tracking-widest text-gray-800 border-b pb-2">
+          KELOLA GAJI KARYAWAN
+        </h2>
+        <button onclick="openModalTambah()"
+                class="bg-green-600 hover:bg-green-700 text-white font-medium px-5 py-2 rounded-full shadow">
+          Add Gaji
         </button>
       </div>
 
@@ -53,8 +68,8 @@ include "../database/koneksi.php";
           <tbody>
             <?php
             $query = mysqli_query($koneksi, "
-              SELECT gaji_karyawan.*, data_karyawan.nama 
-              FROM gaji_karyawan 
+              SELECT gaji_karyawan.*, data_karyawan.nama
+              FROM gaji_karyawan
               JOIN data_karyawan ON gaji_karyawan.id_karyawan = data_karyawan.id
             ");
             while ($data = mysqli_fetch_array($query)) {
@@ -68,10 +83,12 @@ include "../database/koneksi.php";
                   <td class='py-3 px-4'>Rp. " . number_format($data['potongan'], 0, ',', '.') . "</td>
                   <td class='py-3 px-4'>Rp. " . number_format($total, 0, ',', '.') . "</td>
                   <td class='py-2 px-3 text-center'>
-                    <button onclick='openModalEdit({$data['id_gaji']}, \"{$data['bulan']}\", {$data['gaji_pokok']}, {$data['tunjangan']}, {$data['potongan']})' class='text-green-600 hover:text-green-800 mx-1'>
+                    <button onclick='openModalEdit({$data['id_gaji']}, \"{$data['bulan']}\", {$data['gaji_pokok']}, {$data['tunjangan']}, {$data['potongan']})'
+                            class='text-green-600 hover:text-green-800 mx-1'>
                       <i class=\"ri-edit-2-fill text-xl\"></i>
                     </button>
-                    <button onclick='hapusData({$data['id_gaji']})' class='text-red-600 hover:text-red-800 mx-1'>
+                    <button onclick='hapusData({$data['id_gaji']})'
+                            class='text-red-600 hover:text-red-800 mx-1'>
                       <i class=\"ri-delete-bin-5-fill text-xl\"></i>
                     </button>
                   </td>
@@ -83,7 +100,10 @@ include "../database/koneksi.php";
         </table>
       </div>
     </div>
-  </main>
+
+  </div>
+</main>
+
 
   <footer class="mt-10 text-gray-600 text-sm mb-6 text-center">
     © 2025 Intern. All rights reserved.
@@ -97,11 +117,12 @@ include "../database/koneksi.php";
       </div>
       <form id="formTambah" method="POST" action="tambah_gaji.php" class="p-6 space-y-4">
   <div>
-    <label class="block font-semibold mb-1">Nama Karyawan</label>
+    <label class="block font-semibold mb-1">Nama Karyawan
     <select name="nama_karyawan" class="border border-gray-400 rounded w-full px-3 py-2" required>
       <option value="">-- Pilih Karyawan --</option>
+    </label>
+
       <?php
-      include "../database/koneksi.php";
       $query = mysqli_query($koneksi, "SELECT nama FROM data_karyawan");
       while ($row = mysqli_fetch_assoc($query)) {
           echo "<option value='{$row['nama']}'>{$row['nama']}</option>";
@@ -110,20 +131,24 @@ include "../database/koneksi.php";
     </select>
   </div>
   <div>
-    <label class="block font-semibold mb-1">Bulan</label>
+    <label class="block font-semibold mb-1">Bulan
     <input type="text" name="bulan" class="border border-gray-400 rounded w-full px-3 py-2" required>
+    </label>
   </div>
   <div>
-    <label class="block font-semibold mb-1">Gaji Pokok</label>
+    <label class="block font-semibold mb-1">Gaji Pokok
     <input type="number" name="gaji_pokok" class="border border-gray-400 rounded w-full px-3 py-2" required>
+    </label>
   </div>
   <div>
-    <label class="block font-semibold mb-1">Tunjangan</label>
+    <label class="block font-semibold mb-1">Tunjangan
     <input type="number" name="tunjangan" class="border border-gray-400 rounded w-full px-3 py-2" required>
+    </label>
   </div>
   <div>
-    <label class="block font-semibold mb-1">Potongan</label>
+    <label class="block font-semibold mb-1">Potongan
     <input type="number" name="potongan" class="border border-gray-400 rounded w-full px-3 py-2" required>
+    </label>
   </div>
   <div class="flex justify-end space-x-3 mt-4">
     <button type="button" onclick="closeModalTambah()" class="bg-black text-white px-4 py-2 rounded-full ">Kembali</button>
@@ -143,20 +168,24 @@ include "../database/koneksi.php";
       <form id="formEdit" method="POST" action="edit_gaji.php" class="p-6 space-y-4">
         <input type="hidden" name="id_gaji" id="edit_id_gaji">
         <div>
-          <label class="block font-semibold mb-1">Bulan</label>
+          <label class="block font-semibold mb-1">Bulan
           <input type="text" name="bulan" id="edit_bulan" class="border border-gray-400 rounded w-full px-3 py-2" required>
+          </label>
         </div>
         <div>
-          <label class="block font-semibold mb-1">Gaji Pokok</label>
+          <label class="block font-semibold mb-1">Gaji Pokok
           <input type="number" name="gaji_pokok" id="edit_gaji_pokok" class="border border-gray-400 rounded w-full px-3 py-2" required>
+          </label>
         </div>
         <div>
-          <label class="block font-semibold mb-1">Tunjangan</label>
+          <label class="block font-semibold mb-1">Tunjangan
           <input type="number" name="tunjangan" id="edit_tunjangan" class="border border-gray-400 rounded w-full px-3 py-2" required>
+          </label>
         </div>
         <div>
-          <label class="block font-semibold mb-1">Potongan</label>
+          <label class="block font-semibold mb-1">Potongan
           <input type="number" name="potongan" id="edit_potongan" class="border border-gray-400 rounded w-full px-3 py-2" required>
+          </label>
         </div>
         <div class="flex justify-end space-x-3 mt-4">
           <button type="button" onclick="closeModalEdit()" class="bg-black text-white px-4 py-2 rounded-full ">Kembali</button>

@@ -1,5 +1,5 @@
 <?php
-include "../database/koneksi.php";
+include_once "../database/koneksi.php";
 
 $id_gaji = $_POST['id_gaji'];
 $bulan = $_POST['bulan'];
@@ -18,4 +18,4 @@ if (mysqli_query($koneksi, $query)) {
 } else {
     echo "Error: " . mysqli_error($koneksi);
 }
-?>
+

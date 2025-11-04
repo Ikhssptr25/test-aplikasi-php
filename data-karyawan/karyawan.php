@@ -1,5 +1,5 @@
 <?php
-include "../database/koneksi.php";
+include_once "../database/koneksi.php";
 $result = mysqli_query($koneksi, "SELECT * FROM data_karyawan");
 ?>
 
@@ -21,24 +21,38 @@ $result = mysqli_query($koneksi, "SELECT * FROM data_karyawan");
     <img src="../assets/logo.png" alt="Logo" class="w-110 h-14 px-10">
   </header>
 
-  <!-- Navigation -->
-  <div class="flex justify-start space-x-2 mt-20 px-16">
-    <a href="../index.php" class="bg-black text-white px-5 py-2 font-semibold  hover:bg-gray-800 transition">Kembali</a>
-    <a href="../gaji-karyawan/gaji.php" class="bg-white text-green-600 border border-green-600 px-5 py-2 font-semibold hover:bg-green-50 transition">Gaji Karyawan</a>
-  </div>
+<!-- Main -->
+<main class="flex-1 px-4 md:px-10 py-10">
+  <!-- CONTAINER UTAMA: tombol + card di dalam sini -->
+  <div class="w-full max-w-6xl mx-auto">
+    
+    <!-- Tombol Navigasi -->
+    <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mb-6">
+      <a href="../index.php"
+         class="w-full sm:w-auto text-center bg-black text-white px-5 py-2 font-semibold hover:bg-gray-800 transition rounded-sm">
+        Kembali
+      </a>
 
-  <!-- Main -->
-  <main class="flex-1 flex justify-center items-start mt-4 px-6">
-    <div class="bg-white shadow-lg w-full max-w-6xl p-8">
-      <div class="flex justify-between items-center mb-6">
-        <h2 class="text-lg font-bold tracking-widest text-gray-800 border-b pb-2">KELOLA DATA KARYAWAN</h2>
-        <button onclick="openModalTambah()" class="bg-green-600 text-white px-5 py-2 rounded-full font-semibold hover:bg-green-700 transition">
+      <a href="../gaji-karyawan/gaji.php"
+         class="w-full sm:w-auto text-center bg-white text-green-600 border border-green-600 px-5 py-2 font-semibold hover:bg-green-50 transition rounded-sm">
+        Gaji Karyawan
+      </a>
+    </div>
+
+    <!-- Card Tabel -->
+    <div class="bg-white shadow-lg w-full p-8 rounded-md">
+      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-6">
+        <h2 class="text-lg font-bold tracking-widest text-gray-800 border-b pb-2">
+          KELOLA DATA KARYAWAN
+        </h2>
+        <button onclick="openModalTambah()"
+                class="bg-green-600 text-white px-5 py-2 rounded-full font-semibold hover:bg-green-700 transition">
           Add Data
         </button>
       </div>
 
       <div class="overflow-x-auto">
-          <table class="w-full border-collapse text-left">
+        <table class="w-full border-collapse text-left">
           <thead>
             <tr class="bg-gray-100 text-gray-700 border-b font-bold">
               <th class="py-3 px-4 font-semibold">No</th>
@@ -61,10 +75,12 @@ $result = mysqli_query($koneksi, "SELECT * FROM data_karyawan");
                 <td class='py-2 px-3'>{$data['alamat']}</td>
                 <td class='py-2 px-3'>{$data['no_telp']}</td>
                 <td class='py-2 px-3 text-center'>
-                  <button onclick='editData({$data['id']}, \"{$data['nama']}\", \"{$data['jabatan']}\", \"{$data['alamat']}\", \"{$data['no_telp']}\")' class='text-green-600 hover:text-green-800 mx-1'>
+                  <button onclick='editData({$data['id']}, \"{$data['nama']}\", \"{$data['jabatan']}\", \"{$data['alamat']}\", \"{$data['no_telp']}\")'
+                          class='text-green-600 hover:text-green-800 mx-1'>
                     <i class=\"ri-edit-2-fill text-xl\"></i>
                   </button>
-                  <button onclick='hapusData({$data['id']})' class='text-red-600 hover:text-red-800 mx-1'>
+                  <button onclick='hapusData({$data['id']})'
+                          class='text-red-600 hover:text-red-800 mx-1'>
                     <i class=\"ri-delete-bin-5-fill text-xl\"></i>
                   </button>
                 </td>
@@ -76,7 +92,8 @@ $result = mysqli_query($koneksi, "SELECT * FROM data_karyawan");
         </table>
       </div>
     </div>
-  </main>
+  </div>
+</main>
 
   <!-- Footer -->
   <footer class="text-center text-gray-700 text-sm py-4">
@@ -94,36 +111,35 @@ $result = mysqli_query($koneksi, "SELECT * FROM data_karyawan");
     <!-- Form -->
     <form id="formTambah" class="p-6 space-y-4 flex flex-col">
     <div>
-        <label class="block font-semibold mb-1 text-black">Nama</label>
+        <label class="block font-semibold mb-1 text-black">Nama
         <input type="text" name="nama" class="border border-green-400 focus:border-green-600 focus:ring-green-500 rounded w-full px-3 py-2 focus:outline-none" required>
+        </label>
     </div>
     <div>
-        <label class="block font-semibold mb-1 text-black">Jabatan</label>
+        <label class="block font-semibold mb-1 text-black">Jabatan
         <input type="text" name="jabatan" class="border border-green-400 focus:border-green-600 focus:ring-green-500 rounded w-full px-3 py-2 focus:outline-none" required>
-    </div>
+        </label>
+      </div>
     <div>
-        <label class="block font-semibold mb-1 text-black">Alamat</label>
+        <label class="block font-semibold mb-1 text-black">Alamat
         <input type="text" name="alamat" class="border border-green-400 focus:border-green-600 focus:ring-green-500 rounded w-full px-3 py-2 focus:outline-none" required>
-    </div>
+        </label>
+      </div>
     <div>
-        <label class="block font-semibold mb-1 text-black">No Telp</label>
+        <label class="block font-semibold mb-1 text-black">No Telp
         <input type="text" name="no_telp" class="border border-green-400 focus:border-green-600 focus:ring-green-500 rounded w-full px-3 py-2 focus:outline-none" required>
-    </div>
+        </label>
+      </div>
 
     <!-- Tombol Aksi -->
     <div class="flex justify-end space-x-3 mt-2">
-        <button 
-        type="button" 
-        onclick="closeModalTambah()" 
+        <button
+        type="button"
+        onclick="closeModalTambah()"
         class="px-4 py-2 bg-black text-white border border-green-500 rounded-full  transition font-semibold">
         Kembali
         </button>
-
-        <button 
-        type="submit" 
-        class="px-4 py-2 bg-green-600 text-white rounded-full shadow-md shadow-green-300 font-semibold">
-        Simpan
-        </button>
+        <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded-full ">Simpan</button>
     </div>
     </form>
 
@@ -146,43 +162,42 @@ $result = mysqli_query($koneksi, "SELECT * FROM data_karyawan");
       <input type="hidden" name="id" id="edit_id">
 
       <div>
-        <label class="block font-semibold mb-1 text-black">Nama</label>
-        <input type="text" name="nama" id="edit_nama" 
+        <label class="block font-semibold mb-1 text-black">Nama
+        <input type="text" name="nama" id="edit_nama"
           class="border border-green-400 focus:border-green-600 focus:ring-green-500 rounded w-full px-3 py-2 focus:outline-none" required>
-      </div>
+        </label>
+        </div>
 
       <div>
-        <label class="block font-semibold mb-1 text-black">Jabatan</label>
-        <input type="text" name="jabatan" id="edit_jabatan" 
+        <label class="block font-semibold mb-1 text-black">Jabatan
+        <input type="text" name="jabatan" id="edit_jabatan"
           class="border border-green-400 focus:border-green-600 focus:ring-green-500 rounded w-full px-3 py-2 focus:outline-none" required>
-      </div>
+        </label>
+        </div>
 
       <div>
-        <label class="block font-semibold mb-1 text-black">Alamat</label>
-        <input type="text" name="alamat" id="edit_alamat" 
+        <label class="block font-semibold mb-1 text-black">Alamat
+        <input type="text" name="alamat" id="edit_alamat"
           class="border border-green-400 focus:border-green-600 focus:ring-green-500 rounded w-full px-3 py-2 focus:outline-none" required>
-      </div>
+        </label>
+        </div>
 
       <div>
-        <label class="block font-semibold mb-1 text-black">No Telp</label>
-        <input type="text" name="no_telp" id="edit_no_telp" 
+        <label class="block font-semibold mb-1 text-black">No Telp
+        <input type="text" name="no_telp" id="edit_no_telp"
           class="border border-green-400 focus:border-green-600 focus:ring-green-500 rounded w-full px-3 py-2 focus:outline-none" required>
-      </div>
+        </label>
+        </div>
 
       <!-- Tombol Aksi -->
       <div class="flex justify-end space-x-3 mt-2">
-        <button 
-          type="button" 
-          onclick="closeModalEdit()" 
+        <button
+          type="button"
+          onclick="closeModalEdit()"
           class="px-4 py-2 bg-black text-white border border-green-500 rounded-full  transition font-semibold">
           Kembali
         </button>
-
-        <button 
-          type="submit" 
-          class="px-4 py-2 bg-green-600 text-white rounded-full shadow-md shadow-green-300 font-semibold">
-          Update
-        </button>
+        <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded-full ">Update</button>
       </div>
     </form>
   </div>
