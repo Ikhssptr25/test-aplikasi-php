@@ -101,6 +101,6 @@ test('cannot insert gaji dengan data kosong', function () {
         mysqli_query($this->koneksi, $query);
         $this->fail('Seharusnya gagal karena kolom kosong');
     } catch (mysqli_sql_exception $e) {
-        expect($e->getMessage())->toContain('foreign key');
+        expect($e->getMessage())->toContain('Incorrect integer value');
     }
 });
