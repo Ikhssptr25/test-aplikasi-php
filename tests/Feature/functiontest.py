@@ -141,7 +141,7 @@ class SistemPenggajianTest(unittest.TestCase):
             pass
         print("✅ Data gaji berhasil dihapus")
 
-    # 5️⃣ Negative test: input gaji dengan angka negatif 
+# 5️⃣ Negative test: input gaji dengan angka negatif 
     def test_4_negative_input_gaji_tidak_valid(self): 
         driver = self.driver 
         wait = self.wait 
@@ -152,21 +152,37 @@ class SistemPenggajianTest(unittest.TestCase):
         driver.find_element(By.XPATH, "//button[contains(text(),'Add Gaji')]").click() 
         wait.until(EC.presence_of_element_located((By.ID, "id_karyawan"))) 
         
-        Select(driver.find_element(By.ID, "id_karyawan")).select_by_index(1)  
+        Select(driver.find_element(By.ID, "id_karyawan")).select_by_index(1) 
         driver.find_element(By.NAME, "bulan").send_keys("November") 
-        driver.find_element(By.NAME, "gaji_pokok").send_keys("-5000000") 
+        
+        # Temukan field gaji pokok dan simpan
+        gaji_pokok_field = driver.find_element(By.NAME, "gaji_pokok")
+        gaji_pokok_field.send_keys("-5000000") # Isi dengan nilai negatif
+        
         driver.find_element(By.NAME, "tunjangan").send_keys("500000") 
         driver.find_element(By.NAME, "potongan").send_keys("200000") 
-        driver.find_element(By.XPATH, "//button[text()='Simpan']").click() 
-        time.sleep(1) 
         
-        # Cek apakah form gagal submit
-        current_url = driver.current_url
-        if "gaji.php" in current_url:
-            print("✅ Negative Test: Form gagal submit karena input tidak valid secara disengaja")
-        else:
-            print("⚠️ Form berhasil submit (unexpected)")
+        # Klik tombol Simpan
+        driver.find_element(By.XPATH, "//button[text()='Simpan']").click() 
+        time.sleep(1) # Beri waktu browser untuk menjalankan validasi
+        
+        is_valid = driver.execute_script("return arguments[0].checkValidity();", gaji_pokok_field)
 
+        is_modal_open = False
+        try:
+            # Kita cek salah satu elemen di dalam modal, misal tombol 'Simpan'
+            is_modal_open = driver.find_element(By.XPATH, "//button[text()='Simpan']").is_displayed()
+        except:
+            is_modal_open = False # Jika elemen tidak ada, modal tertutup
+
+        # Gunakan assertion untuk validasi
+        self.assertFalse(is_valid, "Form valid, seharusnya tidak valid karena angka negatif")
+        self.assertTrue(is_modal_open, "Modal tertutup, seharusnya tetap terbuka karena submit gagal")
+        
+        print("✅ Negative Test: Form gagal submit karena input tidak valid (angka negatif)")
+
+        driver.refresh()
+        time.sleep(1)
 
     def test_5_negative_tambah_karyawan_kosong(self):
         driver = self.driver 

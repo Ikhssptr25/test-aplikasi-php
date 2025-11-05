@@ -60,18 +60,20 @@ test('cannot insert karyawan dengan data kosong', function () {
     $query = "INSERT INTO data_karyawan (nama, jabatan, alamat, no_telp)
               VALUES ('', '', '', '')";
 
-    mysqli_query($this->koneksi, $query);
-    $id = mysqli_insert_id($this->koneksi);
+    // KITA HARAPKAN INI GAGAL!
+    try {
+        mysqli_query($this->koneksi, $query);
 
-    // Cek apakah data benar-benar tidak tersimpan (seharusnya kosong)
-    $check = mysqli_query($this->koneksi, "SELECT * FROM data_karyawan WHERE id='$id'");
-    $data = mysqli_fetch_assoc($check);
+        // Jika kode sampai sini, berarti INSERT berhasil (ITU BUG!)
+        $this->fail('Query INSERT seharusnya gagal karena check constraint');
 
-    expect(trim($data['nama']))->not->toBe('');
-    expect(trim($data['jabatan']))->not->toBe('');
-    expect(trim($data['alamat']))->not->toBe('');
-    expect(trim($data['no_telp']))->not->toBe('');
-
+    } catch (mysqli_sql_exception $e) {
+        
+        // Jika kode sampai sini, INSERT GAGAL (INI YANG KITA MAU!)
+        // Kita pastikan gagalnya karena alasan yang benar.
+        expect($e->getMessage())->toContain('Check constraint');
+        expect($e->getMessage())->toContain('is violated');
+    }
 });
 
 test('cannot update karyawan dengan id tidak valid', function () {
