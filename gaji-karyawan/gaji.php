@@ -1,7 +1,15 @@
 <?php
+// gaji.php (lengkap, dengan CSRF token)
+// Pastikan ini berada di baris paling atas sebelum output HTML apapun
+session_start();
 include_once "../database/koneksi.php";
-?>
 
+// Generate CSRF token jika belum ada
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+$csrf_token = $_SESSION['csrf_token'];
+?>
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -92,7 +100,11 @@ include_once "../database/koneksi.php";
     <div class="bg-white w-full max-w-md rounded-lg shadow-lg overflow-hidden">
       <div class="bg-green-600 text-white text-center py-3 text-lg font-semibold">Tambah Data Gaji</div>
 
+      <!-- NOTE: action optional karena kita kirim via fetch; FormData(this) akan menyertakan csrf_token -->
       <form id="formTambah" method="POST" class="p-6 space-y-4">
+        <!-- CSRF token hidden -->
+        <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf_token) ?>">
+
         <div>
           <label for="id_karyawan" class="block font-semibold mb-1">Nama Karyawan</label>
           <select id="id_karyawan" name="id_karyawan" class="border border-gray-400 rounded w-full px-3 py-2" required>
@@ -140,6 +152,8 @@ include_once "../database/koneksi.php";
       <div class="bg-green-600 text-white text-center py-3 text-lg font-semibold">Edit Data Gaji</div>
 
       <form id="formEdit" method="POST" class="p-6 space-y-4">
+        <!-- CSRF token hidden -->
+        <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf_token) ?>">
         <input type="hidden" name="id_gaji" id="edit_id_gaji">
         <div>
           <label for="edit_bulan" class="block font-semibold mb-1">Bulan</label>
@@ -178,6 +192,9 @@ include_once "../database/koneksi.php";
   </div>
 
 <script>
+  // Expose CSRF token to JS (safe because token tied to server session)
+  const CSRF_TOKEN = <?= json_encode($csrf_token) ?>;
+
   // Modal controls
   function openModalTambah() { document.getElementById('modalTambah').classList.remove('hidden'); }
   function closeModalTambah() { document.getElementById('modalTambah').classList.add('hidden'); }
@@ -214,7 +231,7 @@ include_once "../database/koneksi.php";
     if (!bulan) { alert('Isi bulan'); return; }
     if (gp < 0 || tun < 0 || pot < 0) { alert('Nilai tidak boleh negatif'); return; }
 
-    const formData = new FormData(this);
+    const formData = new FormData(this); // includes hidden csrf_token
     fetch('tambah_gaji.php', { method: 'POST', body: formData })
       .then(res => res.text())
       .then(response => {
@@ -236,7 +253,7 @@ include_once "../database/koneksi.php";
     const pot = Number(this.potongan.value);
     if (gp < 0 || tun < 0 || pot < 0) { alert('Nilai tidak boleh negatif'); return; }
 
-    const formData = new FormData(this);
+    const formData = new FormData(this); // includes hidden csrf_token
     fetch('edit_gaji.php', { method: 'POST', body: formData })
       .then(res => res.text())
       .then(response => {
@@ -253,10 +270,12 @@ include_once "../database/koneksi.php";
   // ===== AJAX: Hapus =====
   document.getElementById('btnConfirmHapus').addEventListener('click', () => {
     if (!idGajiHapus) return;
+    // Kirim id_gaji + csrf_token
+    const body = 'id_gaji=' + encodeURIComponent(idGajiHapus) + '&csrf_token=' + encodeURIComponent(CSRF_TOKEN);
     fetch('hapus_gaji.php', {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: 'id_gaji=' + idGajiHapus
+      body: body
     }).then(res => res.text())
       .then(response => {
         if (response.includes('success')) {
