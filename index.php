@@ -1,3 +1,9 @@
+<?php
+// ✅ Tambahkan di bagian paling atas sebelum output HTML dimulai
+$csp = "default-src 'self'; script-src 'self' https://cdn.tailwindcss.com; style-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com; img-src 'self' data: https:; font-src 'self' https:; connect-src 'self'; frame-ancestors 'none'; base-uri 'self';";
+header("Content-Security-Policy: $csp");
+?>
+
 <!DOCTYPE html>
 <html lang="id">
 <head>

@@ -13,11 +13,11 @@ include_once "../database/koneksi.php";
 <body class="min-h-screen flex flex-col bg-gradient-to-b from-green-400 to-green-100 font-sans">
 
   <!-- Header -->
-  <header class="bg-white shadow-md flex justify-between items-center px-6 py-3 border-b border-gray-200">
-    <h1 class="text-2xl font-bold text-gray-800">
-      <span class="text-gray-700">Z.</span><a href="../index.php" class="text-green-600">Corporate</a>
+ <header class="bg-white shadow-md flex justify-between items-center px-1 py-1 border-b border-gray-200">
+    <h1 class="text-2xl font-bold text-gray-800 px-12">
+      <span class=" text-gray-700">Z.</span><a href="../index.php" class="text-green-600">Corporate</a>
     </h1>
-    <img src="../assets/logo.png" alt="Logo" class="w-28 h-12">
+    <img src="../assets/logo.png" alt="Logo" class="w-110 h-14 px-10">
   </header>
 
   <!-- Main -->
