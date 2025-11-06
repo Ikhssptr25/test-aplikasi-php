@@ -16,8 +16,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['id'])) {
     }
 
     // ✅ Validasi nomor telepon
-    if (!preg_match('/^628\d{6,12}$/', $no_telp)) {
-        echo "error: Nomor telepon harus diawali dengan 628 dan diikuti 6-12 digit angka";
+    if (!preg_match('/^628\d{7,10}$/', $no_telp)) {
+        echo "error: Nomor telepon harus diawali dengan 628 dan diikuti 6-13 digit angka";
         exit;
     }
 

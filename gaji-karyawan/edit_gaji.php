@@ -58,8 +58,8 @@ mysqli_stmt_close($stmt);
 $total_gaji = max(0, $gaji_pokok + $tunjangan - $potongan);
 
 // Update gaji menggunakan prepared statement
-$stmt = mysqli_prepare($koneksi, "UPDATE gaji_karyawan 
-                                  SET bulan=?, tahun=?, gaji_pokok=?, tunjangan=?, potongan=?, total_gaji=? 
+$stmt = mysqli_prepare($koneksi, "UPDATE gaji_karyawan
+                                  SET bulan=?, tahun=?, gaji_pokok=?, tunjangan=?, potongan=?, total_gaji=?
                                   WHERE id_gaji=?");
 mysqli_stmt_bind_param($stmt, "siiiiii", $bulan, $tahun, $gaji_pokok, $tunjangan, $potongan, $total_gaji, $id_gaji);
 

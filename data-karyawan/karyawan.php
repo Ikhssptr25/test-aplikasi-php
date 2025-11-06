@@ -201,7 +201,7 @@ $result = mysqli_query($koneksi, "SELECT * FROM data_karyawan");
   document.getElementById('formTambah').addEventListener('submit', function(e) {
     e.preventDefault();
     const noTelp = this.querySelector('input[name="no_telp"]').value.trim();
-    if (!/^628\d{6,12}$/.test(noTelp)) {
+    if (!/^628\d{7,10}$/.test(noTelp)) {
       alert("Nomor telepon harus diawali dengan 628 dan diikuti 6-12 digit angka.");
       return;
     }
@@ -221,7 +221,7 @@ $result = mysqli_query($koneksi, "SELECT * FROM data_karyawan");
   document.getElementById('formEdit').addEventListener('submit', function(e) {
     e.preventDefault();
     const noTelp = this.querySelector('input[name="no_telp"]').value.trim();
-    if (!/^628\d{6,12}$/.test(noTelp)) {
+    if (!/^628\d{7,13}$/.test(noTelp)) {
       alert("Nomor telepon harus diawali dengan 628 dan diikuti 6-12 digit angka.");
       return;
     }

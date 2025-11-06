@@ -35,10 +35,10 @@ $stmt = mysqli_prepare($koneksi, "SELECT 1 FROM data_karyawan WHERE id=?");
 mysqli_stmt_bind_param($stmt, "i", $id_karyawan);
 mysqli_stmt_execute($stmt);
 mysqli_stmt_store_result($stmt);
-if(mysqli_stmt_num_rows($stmt) === 0) { 
-    echo "error: Karyawan tidak ditemukan"; 
+if(mysqli_stmt_num_rows($stmt) === 0) {
+    echo "error: Karyawan tidak ditemukan";
     mysqli_stmt_close($stmt);
-    exit; 
+    exit;
 }
 mysqli_stmt_close($stmt);
 
@@ -61,10 +61,10 @@ $total_gaji = max(0, $gaji_pokok + $tunjangan - $potongan);
 $stmt = mysqli_prepare($koneksi, "INSERT INTO gaji_karyawan (id_karyawan, bulan, tahun, gaji_pokok, tunjangan, potongan, total_gaji) VALUES (?,?,?,?,?,?,?)");
 mysqli_stmt_bind_param($stmt, "issiiii", $id_karyawan, $bulan, $tahun, $gaji_pokok, $tunjangan, $potongan, $total_gaji);
 
-if(mysqli_stmt_execute($stmt)){ 
-    echo "success"; 
-} else { 
-    echo "error: " . mysqli_error($koneksi); 
+if(mysqli_stmt_execute($stmt)){
+    echo "success";
+} else {
+    echo "error: " . mysqli_error($koneksi);
 }
 
 mysqli_stmt_close($stmt);
