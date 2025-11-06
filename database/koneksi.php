@@ -1,12 +1,12 @@
 <?php
 $host = "localhost";
-$user = "root"; // sesuaikan dengan user MySQL kamu
+$user = "root"; // sesuaikan
 $pass = "";
-$db = "karyawan";
+$db   = "karyawan";
 
 $koneksi = mysqli_connect($host, $user, $pass, $db);
 
-if(!$koneksi){
+if (!$koneksi) {
     die("Koneksi gagal: " . mysqli_connect_error());
 }
-
+?>
