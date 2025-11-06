@@ -8,19 +8,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $alamat  = mysqli_real_escape_string($koneksi, trim($_POST['alamat']));
     $no_telp = mysqli_real_escape_string($koneksi, trim($_POST['no_telp']));
 
-    // Validasi nama tidak boleh mengandung angka
-    if (preg_match('/\d/', $nama)) {
-        echo "error: Nama tidak boleh mengandung angka";
+    // ✅ Validasi nama hanya boleh huruf + spasi (tanpa angka & simbol)
+    if (!preg_match('/^[a-zA-Z\s]+$/', $nama)) {
+        echo "error: Nama hanya boleh mengandung huruf dan spasi (tidak boleh angka atau simbol)";
         exit;
     }
 
-    // Validasi nomor telepon
+    // ✅ Validasi nomor telepon
     if (!preg_match('/^628\d{6,12}$/', $no_telp)) {
         echo "error: Nomor telepon harus diawali dengan 628 dan diikuti 6-12 digit angka";
         exit;
     }
 
-    // Cek nama dan no_telp unik
+    // ✅ Cek nama dan no_telp unik
     $stmt = mysqli_prepare($koneksi, "SELECT 1 FROM data_karyawan WHERE nama=? OR no_telp=?");
     mysqli_stmt_bind_param($stmt, "ss", $nama, $no_telp);
     mysqli_stmt_execute($stmt);
@@ -33,7 +33,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     mysqli_stmt_close($stmt);
 
-    // Insert data karyawan
+    // ✅ Insert data karyawan
     $stmt = mysqli_prepare($koneksi, "INSERT INTO data_karyawan (nama, jabatan, alamat, no_telp) VALUES (?,?,?,?)");
     mysqli_stmt_bind_param($stmt, "ssss", $nama, $jabatan, $alamat, $no_telp);
 
