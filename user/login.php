@@ -3,8 +3,8 @@ session_start();
 include_once "../database/koneksi.php";
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $email = trim($_POST['email']);
-    $password = trim($_POST['password']);
+    $email = ($_POST['email']);
+    $password = ($_POST['password']);
     $remember = isset($_POST['remember']); // ✅ ceklis ingat saya
 
     $stmt = mysqli_prepare($koneksi, "SELECT id_user, email, password FROM user WHERE email = ?");

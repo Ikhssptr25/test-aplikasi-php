@@ -1,4 +1,10 @@
 <?php
+session_start();
+if (!isset($_SESSION['user_id'])) {
+    header("Location: ../user/login.php");
+    exit();
+}
+
 include_once "../database/koneksi.php";
 $result = mysqli_query($koneksi, "SELECT * FROM data_karyawan");
 ?>
