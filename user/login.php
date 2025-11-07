@@ -22,11 +22,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // ✅ Jika ceklis 'ingat saya' → simpan cookie login 7 hari
             if ($remember) {
                 setcookie("remember_email", $email, time() + (86400 * 7), "/");
-                setcookie("remember_pass", $password, time() + (86400 * 7), "/");
             } else {
                 // hapus cookie jika tidak dicentang
                 setcookie("remember_email", "", time() - 3600, "/");
-                setcookie("remember_pass", "", time() - 3600, "/");
             }
 
             header("Location: ../index.php");
@@ -71,7 +69,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         <label class="block text-sm font-semibold text-gray-700 mb-1">Password</label>
         <input type="password" name="password"
-               value="<?= $_COOKIE['remember_pass'] ?? '' ?>"
+               value=""
                class="w-full p-2 rounded-full border border-green-300 mb-2 focus:ring focus:ring-green-200"
                placeholder="********" required>
 

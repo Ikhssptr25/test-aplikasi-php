@@ -2,7 +2,7 @@
 session_start();
 if (!isset($_SESSION['user_id'])) {
     header("Location: ../user/login.php");
-    exit();
+    exit();
 }
 
 include_once "../database/koneksi.php";
@@ -24,22 +24,21 @@ $csrf_token = $_SESSION['csrf_token'];
 </head>
 <body class="min-h-screen flex flex-col bg-gradient-to-b from-green-400 to-green-100 font-sans">
 
-   <!-- Header -->
-  <header class="bg-white shadow-md flex justify-between items-center px-1 py-1 border-b border-gray-200">
+<header class="bg-white shadow-md flex justify-between items-center px-1 py-1 border-b border-gray-200">
     <h1 class="text-2xl font-bold text-gray-800 px-12">
-      <span class=" text-gray-700">Z.</span><span class="text-green-600">Corporate</span>
+      <span class="text-gray-700">Z.</span><span class="text-green-600">Corporate</span>
     </h1>
     <div class="flex items-center gap-4 mr-2">
-    <img src="../assets/logo.png" alt="Logo" class="w-110 h-14 px-10 mr-0 ">
-    <a href="../user/logout.php" class="flex items-center gap-2 text-black px-4 py-2 mt-5 rounded-lg text-sm font-semibold">
-        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6A2.25 2.25 0 005.25 5.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
-        </svg>
-        keluar
-    </a>
-</div>
-  </header>
+        <img src="../assets/logo.png" alt="Logo" class="w-110 h-14 px-10 mr-0">
+        <a href="../user/logout.php" class="flex items-center gap-2 text-black px-4 py-2 mt-5 rounded-lg text-sm font-semibold">
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                    d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6A2.25 2.25 0 005.25 5.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
+            </svg>
+            keluar
+        </a>
+    </div>
+</header>
 
 <main class="flex-1 px-4 md:px-10 py-10">
     <div class="w-full max-w-6xl mx-auto">
@@ -76,17 +75,17 @@ $csrf_token = $_SESSION['csrf_token'];
                             ORDER BY g.tahun DESC, FIELD(g.bulan,'Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember') DESC
                         ");
                         while ($data = mysqli_fetch_assoc($query)):
-                            $total = max(0, (int)$data['gaji_pokok'] + (int)$data['tunjangan'] - (int)$data['potongan']);
+                            $total = max(0, (float)$data['gaji_pokok'] + (float)$data['tunjangan'] - (float)$data['potongan']);
                         ?>
                         <tr class="border-b hover:bg-gray-50">
                             <td class="py-3 px-4"><?= htmlspecialchars($data['nama']) ?></td>
                             <td class="py-3 px-4"><?= htmlspecialchars($data['bulan'] . ' ' . $data['tahun']) ?></td>
-                            <td class="py-3 px-4">Rp. <?= number_format((int)$data['gaji_pokok'],0,',','.') ?></td>
-                            <td class="py-3 px-4">Rp. <?= number_format((int)$data['tunjangan'],0,',','.') ?></td>
-                            <td class="py-3 px-4">Rp. <?= number_format((int)$data['potongan'],0,',','.') ?></td>
-                            <td class="py-3 px-4 font-semibold">Rp. <?= number_format($total,0,',','.') ?></td>
+                            <td class="py-3 px-4">Rp. <?= number_format((float)$data['gaji_pokok'],2,',','.') ?></td>
+                            <td class="py-3 px-4">Rp. <?= number_format((float)$data['tunjangan'],2,',','.') ?></td>
+                            <td class="py-3 px-4">Rp. <?= number_format((float)$data['potongan'],2,',','.') ?></td>
+                            <td class="py-3 px-4 font-semibold">Rp. <?= number_format($total,2,',','.') ?></td>
                             <td class="py-2 px-3 text-center">
-                                <button onclick='openModalEdit(<?= $data['id_gaji'] ?>, <?= json_encode($data['id_karyawan']) ?>, <?= json_encode($data['bulan']) ?>, <?= $data['tahun'] ?>, <?= (int)$data['gaji_pokok'] ?>, <?= (int)$data['tunjangan'] ?>, <?= (int)$data['potongan'] ?>)' class='text-green-600 hover:text-green-800 mx-1'>
+                                <button onclick='openModalEdit(<?= $data['id_gaji'] ?>, <?= json_encode($data['id_karyawan']) ?>, <?= json_encode($data['bulan']) ?>, <?= $data['tahun'] ?>, <?= (float)$data['gaji_pokok'] ?>, <?= (float)$data['tunjangan'] ?>, <?= (float)$data['potongan'] ?>)' class='text-green-600 hover:text-green-800 mx-1'>
                                     <i class="ri-edit-2-fill text-xl"></i>
                                 </button>
                                 <button onclick='hapusData(<?= $data['id_gaji'] ?>)' class='text-red-600 hover:text-red-800 mx-1'>
@@ -144,17 +143,17 @@ $csrf_token = $_SESSION['csrf_token'];
 
             <div>
                 <label for="gaji_pokok" class="block font-semibold mb-1">Gaji Pokok</label>
-                <input id="gaji_pokok" name="gaji_pokok" type="number" min="0" value="0" class="border border-gray-400 rounded w-full px-3 py-2" required>
+                <input id="gaji_pokok" name="gaji_pokok" type="number" min="0" step="0.01" value="0" class="border border-gray-400 rounded w-full px-3 py-2" required>
             </div>
 
             <div>
                 <label for="tunjangan" class="block font-semibold mb-1">Tunjangan</label>
-                <input id="tunjangan" name="tunjangan" type="number" min="0" value="0" class="border border-gray-400 rounded w-full px-3 py-2" required>
+                <input id="tunjangan" name="tunjangan" type="number" min="0" step="0.01" value="0" class="border border-gray-400 rounded w-full px-3 py-2" required>
             </div>
 
             <div>
                 <label for="potongan" class="block font-semibold mb-1">Potongan</label>
-                <input id="potongan" name="potongan" type="number" min="0" value="0" class="border border-gray-400 rounded w-full px-3 py-2" required>
+                <input id="potongan" name="potongan" type="number" min="0" step="0.01" value="0" class="border border-gray-400 rounded w-full px-3 py-2" required>
             </div>
 
             <div class="flex justify-end space-x-3 mt-4">
@@ -205,17 +204,17 @@ $csrf_token = $_SESSION['csrf_token'];
 
             <div>
                 <label for="edit_gaji_pokok" class="block font-semibold mb-1">Gaji Pokok</label>
-                <input id="edit_gaji_pokok" name="gaji_pokok" type="number" min="0" value="0" class="border border-gray-400 rounded w-full px-3 py-2" required>
+                <input id="edit_gaji_pokok" name="gaji_pokok" type="number" min="0" step="0.01" value="0" class="border border-gray-400 rounded w-full px-3 py-2" required>
             </div>
 
             <div>
                 <label for="edit_tunjangan" class="block font-semibold mb-1">Tunjangan</label>
-                <input id="edit_tunjangan" name="tunjangan" type="number" min="0" value="0" class="border border-gray-400 rounded w-full px-3 py-2" required>
+                <input id="edit_tunjangan" name="tunjangan" type="number" min="0" step="0.01" value="0" class="border border-gray-400 rounded w-full px-3 py-2" required>
             </div>
 
             <div>
                 <label for="edit_potongan" class="block font-semibold mb-1">Potongan</label>
-                <input id="edit_potongan" name="potongan" type="number" min="0" value="0" class="border border-gray-400 rounded w-full px-3 py-2" required>
+                <input id="edit_potongan" name="potongan" type="number" min="0" step="0.01" value="0" class="border border-gray-400 rounded w-full px-3 py-2" required>
             </div>
 
             <div class="flex justify-end space-x-3 mt-4">
