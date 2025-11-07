@@ -8,19 +8,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $alamat  = mysqli_real_escape_string($koneksi, trim($_POST['alamat']));
     $no_telp = mysqli_real_escape_string($koneksi, trim($_POST['no_telp']));
 
-    // ✅ Validasi nama hanya boleh huruf + spasi (tanpa angka & simbol)
+    // ============================
+    // VALIDASI INPUT
+    // ============================
+
+    // Nama: hanya huruf dan spasi
     if (!preg_match('/^[a-zA-Z\s]+$/', $nama)) {
-        echo "error: Nama hanya boleh mengandung huruf dan spasi (tidak boleh angka atau simbol)";
+        echo "error: Nama hanya boleh mengandung huruf dan spasi";
         exit;
     }
 
-    // ✅ Validasi nomor telepon
+    // Jabatan: hanya huruf dan spasi
+    if (!preg_match('/^[a-zA-Z\s]+$/', $jabatan)) {
+        echo "error: Jabatan hanya boleh mengandung huruf dan spasi";
+        exit;
+    }
+
+    // Alamat: huruf, angka, spasi, titik, koma, minus, slash /, dan #
+    if (!preg_match('/^[a-zA-Z0-9\s\.,\-\/#]{3,}$/', $alamat)) {
+        echo "error: Alamat tidak valid, minimal 3 karakter dan hanya boleh huruf, angka, spasi, titik, koma, minus, slash /, atau #";
+        exit;
+    }
+
+    // Nomor telepon: harus diawali 628 dan 10-13 digit
     if (!preg_match('/^628\d{7,10}$/', $no_telp)) {
         echo "error: Nomor telepon harus diawali dengan 628 dan diikuti 10-13 digit angka";
         exit;
     }
 
-    // ✅ Cek nama dan no_telp unik
+    // ============================
+    // CEK DUPLIKAT
+    // ============================
+
     $stmt = mysqli_prepare($koneksi, "SELECT 1 FROM data_karyawan WHERE nama=? OR no_telp=?");
     mysqli_stmt_bind_param($stmt, "ss", $nama, $no_telp);
     mysqli_stmt_execute($stmt);
@@ -33,7 +52,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     mysqli_stmt_close($stmt);
 
-    // ✅ Insert data karyawan
+    // ============================
+    // INSERT DATA
+    // ============================
+
     $stmt = mysqli_prepare($koneksi, "INSERT INTO data_karyawan (nama, jabatan, alamat, no_telp) VALUES (?,?,?,?)");
     mysqli_stmt_bind_param($stmt, "ssss", $nama, $jabatan, $alamat, $no_telp);
 
