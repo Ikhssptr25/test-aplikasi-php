@@ -2,11 +2,29 @@
 session_start();
 include_once "../database/koneksi.php";
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $email = trim($_POST['email']);
-    $password = ($_POST['password']);
-    $remember = isset($_POST['remember']); // ✅ ceklis ingat saya
+// ============================
+// Konfigurasi brute-force
+// ============================
+$max_attempts = 5; // maksimal percobaan login
+$lock_time    = 120; // lock 5 menit (300 detik)
+if (!isset($_SESSION['login_attempts'])) $_SESSION['login_attempts'] = 0;
+if (!isset($_SESSION['last_attempt_time'])) $_SESSION['last_attempt_time'] = 0;
 
+// cek lock
+if ($_SESSION['login_attempts'] >= $max_attempts && (time() - $_SESSION['last_attempt_time']) < $lock_time) {
+    $error = "Terlalu banyak percobaan. Coba lagi setelah beberapa menit.";
+}
+
+// ============================
+// Proses login
+// ============================
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($error)) {
+
+    $email = trim($_POST['email']);
+    $password = $_POST['password'];
+    $remember = isset($_POST['remember']);
+
+    // Prepared statement
     $stmt = mysqli_prepare($koneksi, "SELECT id_user, email, password FROM user WHERE email = ?");
     mysqli_stmt_bind_param($stmt, "s", $email);
     mysqli_stmt_execute($stmt);
@@ -14,16 +32,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($row = mysqli_fetch_assoc($result)) {
         if (password_verify($password, $row['password'])) {
+            // Reset login attempts
+            $_SESSION['login_attempts'] = 0;
+            $_SESSION['last_attempt_time'] = 0;
 
-            // ✅ Simpan session normal
+            // Simpan session
             $_SESSION['user_id'] = $row['id_user'];
             $_SESSION['email']   = $row['email'];
 
-            // ✅ Jika ceklis 'ingat saya' → simpan cookie login 7 hari
+            // Remember me dengan SameSite & HttpOnly
             if ($remember) {
-                setcookie("remember_email", $email, time() + (86400 * 7), "/");
+                setcookie("remember_email", $email, [
+                    'expires' => time() + (86400 * 7),
+                    'path' => '/',
+                    'secure' => isset($_SERVER['HTTPS']),
+                    'httponly' => true,
+                    'samesite' => 'Lax'
+                ]);
             } else {
-                // hapus cookie jika tidak dicentang
                 setcookie("remember_email", "", time() - 3600, "/");
             }
 
@@ -37,6 +63,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     mysqli_stmt_close($stmt);
+
+    // Update login attempts
+    $_SESSION['login_attempts']++;
+    $_SESSION['last_attempt_time'] = time();
 }
 ?>
 <!DOCTYPE html>
@@ -63,13 +93,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         <label class="block text-sm font-semibold text-gray-700 mb-1">Email</label>
         <input type="email" name="email"
-               value="<?= $_COOKIE['remember_email'] ?? '' ?>"
+               value="<?= htmlspecialchars($_COOKIE['remember_email'] ?? '') ?>"
                class="w-full p-2 rounded-full border border-green-300 mb-4 focus:ring focus:ring-green-200"
                placeholder="Masukkan email anda" required>
 
         <label class="block text-sm font-semibold text-gray-700 mb-1">Password</label>
         <input type="password" name="password"
-               value=""
                class="w-full p-2 rounded-full border border-green-300 mb-2 focus:ring focus:ring-green-200"
                placeholder="********" required>
 

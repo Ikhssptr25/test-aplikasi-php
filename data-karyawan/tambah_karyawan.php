@@ -1,70 +1,82 @@
 <?php
+session_start();
 include_once "../database/koneksi.php";
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Ambil dan bersihkan input
-    $nama    = mysqli_real_escape_string($koneksi, trim($_POST['nama']));
-    $jabatan = mysqli_real_escape_string($koneksi, trim($_POST['jabatan']));
-    $alamat  = mysqli_real_escape_string($koneksi, trim($_POST['alamat']));
-    $no_telp = mysqli_real_escape_string($koneksi, trim($_POST['no_telp']));
-
-    // ============================
-    // VALIDASI INPUT
-    // ============================
-
-    // Nama: hanya huruf dan spasi
-    if (!preg_match('/^[a-zA-Z\s]+$/', $nama)) {
-        echo "error: Nama hanya boleh mengandung huruf dan spasi";
-        exit;
-    }
-
-    // Jabatan: hanya huruf dan spasi
-    if (!preg_match('/^[a-zA-Z\s]+$/', $jabatan)) {
-        echo "error: Jabatan hanya boleh mengandung huruf dan spasi";
-        exit;
-    }
-
-    // Alamat: huruf, angka, spasi, titik, koma, minus, slash /, dan #
-    if (!preg_match('/^[a-zA-Z0-9\s\.,\-\/#]{3,}$/', $alamat)) {
-        echo "error: Alamat tidak valid, minimal 3 karakter dan hanya boleh huruf, angka, spasi, titik, koma, minus, slash /, atau #";
-        exit;
-    }
-
-    // Nomor telepon: harus diawali 628 dan 10-13 digit
-    if (!preg_match('/^628\d{7,10}$/', $no_telp)) {
-        echo "error: Nomor telepon harus diawali dengan 628 dan diikuti 10-13 digit angka";
-        exit;
-    }
-
-    // ============================
-    // CEK DUPLIKAT
-    // ============================
-
-    $stmt = mysqli_prepare($koneksi, "SELECT 1 FROM data_karyawan WHERE nama=? OR no_telp=?");
-    mysqli_stmt_bind_param($stmt, "ss", $nama, $no_telp);
-    mysqli_stmt_execute($stmt);
-    mysqli_stmt_store_result($stmt);
-
-    if (mysqli_stmt_num_rows($stmt) > 0) {
-        echo "error: Nama atau nomor telepon sudah terdaftar";
-        mysqli_stmt_close($stmt);
-        exit;
-    }
-    mysqli_stmt_close($stmt);
-
-    // ============================
-    // INSERT DATA
-    // ============================
-
-    $stmt = mysqli_prepare($koneksi, "INSERT INTO data_karyawan (nama, jabatan, alamat, no_telp) VALUES (?,?,?,?)");
-    mysqli_stmt_bind_param($stmt, "ssss", $nama, $jabatan, $alamat, $no_telp);
-
-    if (mysqli_stmt_execute($stmt)) {
-        echo "success";
-    } else {
-        echo "error: " . mysqli_error($koneksi);
-    }
-
-    mysqli_stmt_close($stmt);
-    mysqli_close($koneksi);
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    http_response_code(405);
+    exit("error: Metode tidak diizinkan");
 }
+
+// ============================
+// CEK SESSION DAN CSRF
+// ============================
+if (!isset($_SESSION['user_id'])) {
+    http_response_code(403);
+    exit("error: Silakan login terlebih dahulu");
+}
+
+if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== ($_SESSION['csrf_token'] ?? '')) {
+    http_response_code(403);
+    exit("error: Token CSRF tidak valid");
+}
+
+// ============================
+// AMBIL DAN BERSIHKAN INPUT
+// ============================
+$nama    = trim($_POST['nama'] ?? '');
+$jabatan = trim($_POST['jabatan'] ?? '');
+$alamat  = trim($_POST['alamat'] ?? '');
+$no_telp = trim($_POST['no_telp'] ?? '');
+
+// ============================
+// VALIDASI INPUT
+// ============================
+
+// Nama: hanya huruf & spasi
+if (!preg_match('/^[a-zA-Z\s]+$/', $nama)) {
+    exit("error: Nama hanya boleh huruf dan spasi");
+}
+
+// Jabatan: hanya huruf & spasi
+if (!preg_match('/^[a-zA-Z\s]+$/', $jabatan)) {
+    exit("error: Jabatan hanya boleh huruf dan spasi");
+}
+
+// Alamat: huruf, angka, spasi, titik, koma, minus, slash /, #
+if (!preg_match('/^[a-zA-Z0-9\s\.,\-\/#]{3,}$/', $alamat)) {
+    exit("error: Alamat tidak valid, minimal 3 karakter dan hanya boleh huruf, angka, spasi, titik, koma, minus, slash /, atau #");
+}
+
+// Nomor telepon: harus diawali 628 dan 10-13 digit
+if (!preg_match('/^628\d{7,10}$/', $no_telp)) {
+    exit("error: Nomor telepon harus diawali dengan 628 dan diikuti 10-13 digit angka");
+}
+
+// ============================
+// CEK DUPLIKAT
+// ============================
+$stmt = mysqli_prepare($koneksi, "SELECT 1 FROM data_karyawan WHERE nama=? OR no_telp=?");
+mysqli_stmt_bind_param($stmt, "ss", $nama, $no_telp);
+mysqli_stmt_execute($stmt);
+mysqli_stmt_store_result($stmt);
+
+if (mysqli_stmt_num_rows($stmt) > 0) {
+    mysqli_stmt_close($stmt);
+    exit("error: Nama atau nomor telepon sudah terdaftar");
+}
+mysqli_stmt_close($stmt);
+
+// ============================
+// INSERT DATA
+// ============================
+$stmt = mysqli_prepare($koneksi, "INSERT INTO data_karyawan (nama, jabatan, alamat, no_telp) VALUES (?,?,?,?)");
+mysqli_stmt_bind_param($stmt, "ssss", $nama, $jabatan, $alamat, $no_telp);
+
+if (mysqli_stmt_execute($stmt)) {
+    echo "success";
+} else {
+    echo "error: " . mysqli_error($koneksi);
+}
+
+mysqli_stmt_close($stmt);
+mysqli_close($koneksi);
