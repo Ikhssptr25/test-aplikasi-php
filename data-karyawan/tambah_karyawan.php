@@ -2,14 +2,16 @@
 session_start();
 include_once "../database/koneksi.php";
 
-// Pastikan method POST
+// ============================
+// PASTIKAN METHOD POST
+// ============================
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
     exit("error: Metode tidak diizinkan");
 }
 
 // ============================
-// CEK SESSION DAN CSRF
+// CEK SESSION & CSRF
 // ============================
 if (!isset($_SESSION['user_id'])) {
     http_response_code(403);
@@ -22,7 +24,7 @@ if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== ($_SESSION['csrf_to
 }
 
 // ============================
-// AMBIL DAN BERSIHKAN INPUT
+// AMBIL & BERSIHKAN INPUT
 // ============================
 $nama    = trim($_POST['nama'] ?? '');
 $jabatan = trim($_POST['jabatan'] ?? '');
@@ -43,7 +45,7 @@ if (!preg_match('/^[a-zA-Z\s]+$/', $jabatan)) {
     exit("error: Jabatan hanya boleh huruf dan spasi");
 }
 
-// Alamat: huruf, angka, spasi, titik, koma, minus, slash /, #
+// Alamat: minimal 3 karakter, huruf, angka, spasi, titik, koma, minus, slash /, #
 if (!preg_match('/^[a-zA-Z0-9\s\.,\-\/#]{3,}$/', $alamat)) {
     exit("error: Alamat tidak valid, minimal 3 karakter dan hanya boleh huruf, angka, spasi, titik, koma, minus, slash /, atau #");
 }
@@ -81,3 +83,4 @@ if (mysqli_stmt_execute($stmt)) {
 
 mysqli_stmt_close($stmt);
 mysqli_close($koneksi);
+?>
