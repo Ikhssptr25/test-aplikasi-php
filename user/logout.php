@@ -1,10 +1,14 @@
 <?php
 session_start(); // Pastikan session aktif
 
-// Hapus semua variabel session
+// ============================
+// HAPUS SEMUA SESSION
+// ============================
 $_SESSION = [];
 
-// Hapus cookie session (jika ada)
+// ============================
+// HAPUS COOKIE SESSION
+// ============================
 if (ini_get("session.use_cookies")) {
     $params = session_get_cookie_params();
     setcookie(
@@ -18,10 +22,21 @@ if (ini_get("session.use_cookies")) {
     );
 }
 
-// Hapus session dari server
+// ============================
+// HAPUS COOKIE "REMEMBER ME"
+// ============================
+if (isset($_COOKIE['remember_email'])) {
+    setcookie("remember_email", "", time() - 3600, "/");
+}
+
+// ============================
+// HANCURKAN SESSION DI SERVER
+// ============================
 session_destroy();
 
-// Redirect ke halaman login
+// ============================
+// REDIRECT KE LOGIN
+// ============================
 header("Location: login.php");
 exit;
 ?>

@@ -1,13 +1,39 @@
 <?php
+session_start();
 include_once "../database/koneksi.php";
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['id'])) {
-    // Ambil dan bersihkan input
-    $id      = (int) trim($_POST['id']);
-    $nama    = trim($_POST['nama']);
-    $jabatan = trim($_POST['jabatan']);
-    $alamat  = trim($_POST['alamat']);
-    $no_telp = trim($_POST['no_telp']);
+// ============================
+// PASTIKAN METHOD POST
+// ============================
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    http_response_code(405);
+    exit("error: Metode tidak diizinkan");
+}
+
+// ============================
+// CEK SESSION (harus login admin)
+// ============================
+if (!isset($_SESSION['user_id']) || ($_SESSION['role'] ?? '') !== 'admin') {
+    http_response_code(403);
+    exit("error: Silakan login sebagai admin");
+}
+
+// ============================
+// VALIDASI CSRF
+// ============================
+if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== ($_SESSION['csrf_token'] ?? '')) {
+    http_response_code(403);
+    exit("error: Token CSRF tidak valid");
+}
+
+// ============================
+// AMBIL & BERSIHKAN INPUT
+// ============================
+$id      = isset($_POST['id']) ? (int) trim($_POST['id']) : 0;
+$nama    = trim($_POST['nama'] ?? '');
+$jabatan = trim($_POST['jabatan'] ?? '');
+$alamat  = trim($_POST['alamat'] ?? '');
+$no_telp = trim($_POST['no_telp'] ?? '');
 
     // ✅ Validasi nama hanya huruf + spasi (tanpa angka & tanpa simbol)
     if (!preg_match('/^[a-zA-Z\s]+$/', $nama)) {
@@ -16,8 +42,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['id'])) {
     }
 
     // ✅ Validasi nomor telepon
-    if (!preg_match('/^628\d{7,10}$/', $no_telp)) {
-        echo "error: Nomor telepon harus diawali dengan 628 dan diikuti 6-13 digit angka";
+    if (!preg_match('/^628\d{6,12}$/', $no_telp)) {
+        echo "error: Nomor telepon harus diawali dengan 628 dan diikuti 6-12 digit angka";
         exit;
     }
 
@@ -34,37 +60,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['id'])) {
     }
     mysqli_stmt_close($stmt);
 
-    // ✅ Cek unik nama & no_telp (kecuali dirinya sendiri)
-    $stmt = mysqli_prepare($koneksi, 
-        "SELECT 1 FROM data_karyawan 
-         WHERE (nama=? OR no_telp=?) AND id<>?"
-    );
-    mysqli_stmt_bind_param($stmt, "ssi", $nama, $no_telp, $id);
-    mysqli_stmt_execute($stmt);
-    mysqli_stmt_store_result($stmt);
-
-    if (mysqli_stmt_num_rows($stmt) > 0) {
-        echo "error: Nama atau nomor telepon sudah terdaftar";
-        mysqli_stmt_close($stmt);
-        exit;
-    }
+// ============================
+// CEK DUPLIKAT NOMOR TELEPON
+// ============================
+$stmt = mysqli_prepare($koneksi, "SELECT 1 FROM data_karyawan WHERE no_telp=? AND id<>?");
+mysqli_stmt_bind_param($stmt, "si", $no_telp, $id);
+mysqli_stmt_execute($stmt);
+mysqli_stmt_store_result($stmt);
+if (mysqli_stmt_num_rows($stmt) > 0) {
     mysqli_stmt_close($stmt);
-
-    // ✅ Update data
-    $stmt = mysqli_prepare($koneksi,
-        "UPDATE data_karyawan 
-         SET nama=?, jabatan=?, alamat=?, no_telp=? 
-         WHERE id=?"
-    );
-    mysqli_stmt_bind_param($stmt, "ssssi", $nama, $jabatan, $alamat, $no_telp, $id);
-
-    if (mysqli_stmt_execute($stmt)) {
-        echo "success";
-    } else {
-        echo "error: " . mysqli_error($koneksi);
-    }
-
-    mysqli_stmt_close($stmt);
-    mysqli_close($koneksi);
+    exit("error: Nomor telepon sudah terdaftar");
 }
+mysqli_stmt_close($stmt);
+
+// ============================
+// UPDATE DATA KARYAWAN
+// ============================
+$stmt = mysqli_prepare(
+    $koneksi,
+    "UPDATE data_karyawan 
+     SET nama=?, jabatan=?, alamat=?, no_telp=? 
+     WHERE id=?"
+);
+mysqli_stmt_bind_param($stmt, "ssssi", $nama, $jabatan, $alamat, $no_telp, $id);
+
+if (mysqli_stmt_execute($stmt)) {
+    echo "success";
+} else {
+    echo "error: " . mysqli_error($koneksi);
+}
+
+mysqli_stmt_close($stmt);
+mysqli_close($koneksi);
 ?>
