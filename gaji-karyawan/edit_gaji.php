@@ -32,7 +32,7 @@ if ($id_gaji <= 0) exit("error: ID gaji tidak valid");
 if (!in_array($bulan, $bulan_list)) exit("error: Bulan tidak valid");
 if ($tahun < 2000 || $tahun > 2100) exit("error: Tahun tidak valid");
 
-function validasi_decimal($nilai, $field) {
+function validasiDecimal($nilai, $field) {
     if (!is_numeric($nilai)) exit("error: $field harus berupa angka");
     $nilai = round((float)$nilai, 2);
     if ($nilai < 0) exit("error: $field tidak boleh negatif");
@@ -40,9 +40,9 @@ function validasi_decimal($nilai, $field) {
     return $nilai;
 }
 
-$gaji_pokok = validasi_decimal($gaji_pokok, "Gaji Pokok");
-$tunjangan  = validasi_decimal($tunjangan, "Tunjangan");
-$potongan   = validasi_decimal($potongan, "Potongan");
+$gaji_pokok = validasiDecimal($gaji_pokok, "Gaji Pokok");
+$tunjangan  = validasiDecimal($tunjangan, "Tunjangan");
+$potongan   = validasiDecimal($potongan, "Potongan");
 $total_gaji = max(0, $gaji_pokok + $tunjangan - $potongan);
 $total_gaji = round($total_gaji, 2);
 
@@ -68,8 +68,8 @@ if (mysqli_stmt_num_rows($stmt) > 0) {
 mysqli_stmt_close($stmt);
 
 // UPDATE DATA
-$stmt = mysqli_prepare($koneksi, "UPDATE gaji_karyawan 
-                                  SET bulan=?, tahun=?, gaji_pokok=?, tunjangan=?, potongan=?, total_gaji=? 
+$stmt = mysqli_prepare($koneksi, "UPDATE gaji_karyawan
+                                  SET bulan=?, tahun=?, gaji_pokok=?, tunjangan=?, potongan=?, total_gaji=?
                                   WHERE id_gaji=?");
 mysqli_stmt_bind_param($stmt, "sdddddi", $bulan, $tahun, $gaji_pokok, $tunjangan, $potongan, $total_gaji, $id_gaji);
 

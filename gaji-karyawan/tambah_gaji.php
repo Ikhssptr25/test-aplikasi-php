@@ -42,7 +42,7 @@ if ($id_karyawan <= 0) exit("error: Pilih karyawan");
 if (!in_array($bulan, $bulan_list)) exit("error: Bulan tidak valid");
 if ($tahun < 2000 || $tahun > 2100) exit("error: Tahun tidak valid");
 
-function validasi_decimal($nilai, $field) {
+function validasiDecimal($nilai, $field) {
     if (!is_numeric($nilai)) exit("error: $field harus berupa angka");
     $nilai = round((float)$nilai, 2);
     if ($nilai < 0) exit("error: $field tidak boleh negatif");
@@ -50,9 +50,9 @@ function validasi_decimal($nilai, $field) {
     return $nilai;
 }
 
-$gaji_pokok = validasi_decimal($gaji_pokok, "Gaji Pokok");
-$tunjangan  = validasi_decimal($tunjangan, "Tunjangan");
-$potongan   = validasi_decimal($potongan, "Potongan");
+$gaji_pokok = validasiDecimal($gaji_pokok, "Gaji Pokok");
+$tunjangan  = validasiDecimal($tunjangan, "Tunjangan");
+$potongan   = validasiDecimal($potongan, "Potongan");
 
 $total_gaji = max(0, $gaji_pokok + $tunjangan - $potongan);
 $total_gaji = round($total_gaji, 2);
@@ -64,10 +64,10 @@ $stmt = mysqli_prepare($koneksi, "SELECT 1 FROM data_karyawan WHERE id=?");
 mysqli_stmt_bind_param($stmt, "i", $id_karyawan);
 mysqli_stmt_execute($stmt);
 mysqli_stmt_store_result($stmt);
-if(mysqli_stmt_num_rows($stmt) === 0) { 
-    echo "error: Karyawan tidak ditemukan"; 
+if(mysqli_stmt_num_rows($stmt) === 0) {
+    echo "error: Karyawan tidak ditemukan";
     mysqli_stmt_close($stmt);
-    exit; 
+    exit;
 }
 mysqli_stmt_close($stmt);
 
@@ -91,10 +91,10 @@ mysqli_stmt_close($stmt);
 $stmt = mysqli_prepare($koneksi, "INSERT INTO gaji_karyawan (id_karyawan, bulan, tahun, gaji_pokok, tunjangan, potongan, total_gaji) VALUES (?,?,?,?,?,?,?)");
 mysqli_stmt_bind_param($stmt, "issdddd", $id_karyawan, $bulan, $tahun, $gaji_pokok, $tunjangan, $potongan, $total_gaji);
 
-if(mysqli_stmt_execute($stmt)){ 
-    echo "success"; 
-} else { 
-    echo "error: " . mysqli_error($koneksi); 
+if(mysqli_stmt_execute($stmt)){
+    echo "success";
+} else {
+    echo "error: " . mysqli_error($koneksi);
 }
 
 mysqli_stmt_close($stmt);

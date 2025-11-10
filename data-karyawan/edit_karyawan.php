@@ -74,8 +74,8 @@ mysqli_stmt_close($stmt);
 // ============================
 $stmt = mysqli_prepare(
     $koneksi,
-    "UPDATE data_karyawan 
-     SET nama=?, jabatan=?, alamat=?, no_telp=? 
+    "UPDATE data_karyawan
+     SET nama=?, jabatan=?, alamat=?, no_telp=?
      WHERE id=?"
 );
 mysqli_stmt_bind_param($stmt, "ssssi", $nama, $jabatan, $alamat, $no_telp, $id);
