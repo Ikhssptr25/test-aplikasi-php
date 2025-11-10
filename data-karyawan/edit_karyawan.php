@@ -33,12 +33,12 @@ $no_telp = trim($_POST['no_telp']);
 
 // Nama: hanya huruf & spasi
 if (!preg_match('/^[a-zA-Z\s]+$/', $nama)) {
-    exit("error: Nama hanya boleh huruf dan spasi (tidak boleh angka atau simbol)");
+    exit("error: Nama hanya boleh huruf dan spasi");
 }
 
 // Jabatan: hanya huruf & spasi
 if (!preg_match('/^[a-zA-Z\s]+$/', $jabatan)) {
-    exit("error: Jabatan hanya boleh huruf dan spasi (tidak boleh angka atau simbol)");
+    exit("error: Jabatan hanya boleh huruf dan spasi");
 }
 
 // Alamat: huruf, angka, spasi, titik, koma, minus, slash /, #
@@ -54,7 +54,6 @@ if (!preg_match('/^628\d{7,10}$/', $no_telp)) {
 // ============================
 // VALIDASI ID KARYAWAN
 // ============================
-
 $stmt = mysqli_prepare($koneksi, "SELECT 1 FROM data_karyawan WHERE id=?");
 mysqli_stmt_bind_param($stmt, "i", $id);
 mysqli_stmt_execute($stmt);
@@ -67,26 +66,24 @@ if (mysqli_stmt_num_rows($stmt) === 0) {
 mysqli_stmt_close($stmt);
 
 // ============================
-// CEK DUPLIKAT NAMA / NO TELP (kecuali dirinya sendiri)
+// CEK DUPLIKAT NOMOR TELEPON (kecuali dirinya sendiri)
 // ============================
-
 $stmt = mysqli_prepare($koneksi, 
-    "SELECT 1 FROM data_karyawan WHERE (nama=? OR no_telp=?) AND id<>?"
+    "SELECT 1 FROM data_karyawan WHERE no_telp=? AND id<>?"
 );
-mysqli_stmt_bind_param($stmt, "ssi", $nama, $no_telp, $id);
+mysqli_stmt_bind_param($stmt, "si", $no_telp, $id);
 mysqli_stmt_execute($stmt);
 mysqli_stmt_store_result($stmt);
 
 if (mysqli_stmt_num_rows($stmt) > 0) {
     mysqli_stmt_close($stmt);
-    exit("error: Nama atau nomor telepon sudah terdaftar");
+    exit("error: Nomor telepon sudah terdaftar");
 }
 mysqli_stmt_close($stmt);
 
 // ============================
 // UPDATE DATA KARYAWAN
 // ============================
-
 $stmt = mysqli_prepare($koneksi, 
     "UPDATE data_karyawan 
      SET nama=?, jabatan=?, alamat=?, no_telp=? 
