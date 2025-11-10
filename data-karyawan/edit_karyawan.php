@@ -11,14 +11,6 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 // ============================
-// CEK SESSION (harus login admin)
-// ============================
-if (!isset($_SESSION['user_id']) || ($_SESSION['role'] ?? '') !== 'admin') {
-    http_response_code(403);
-    exit("error: Silakan login sebagai admin");
-}
-
-// ============================
 // VALIDASI CSRF
 // ============================
 if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== ($_SESSION['csrf_token'] ?? '')) {
