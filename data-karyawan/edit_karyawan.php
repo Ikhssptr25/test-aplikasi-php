@@ -19,9 +19,22 @@ if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== ($_SESSION['csrf_to
 }
 
 // ============================
+// VALIDASI ONE-TIME TOKEN (IDOR PROTECTION)
+// ============================
+$token = $_POST['ftoken'] ?? '';
+$entry = $_SESSION['edit_tokens'][$token] ?? null;
+if (!$entry || $entry['expires'] < time()) {
+    http_response_code(400);
+    exit("error: Token edit tidak valid atau kadaluarsa");
+}
+
+// Ambil id dari session mapping, hapus token setelah digunakan (one-time)
+$id = (int)$entry['id'];
+unset($_SESSION['edit_tokens'][$token]);
+
+// ============================
 // AMBIL & BERSIHKAN INPUT
 // ============================
-$id      = isset($_POST['id']) ? (int) trim($_POST['id']) : 0;
 $nama    = trim($_POST['nama'] ?? '');
 $jabatan = trim($_POST['jabatan'] ?? '');
 $alamat  = trim($_POST['alamat'] ?? '');

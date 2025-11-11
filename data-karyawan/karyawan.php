@@ -12,6 +12,12 @@ if (empty($_SESSION['csrf_token'])) {
     $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 }
 
+// Inisialisasi session token edit
+if (!isset($_SESSION['edit_tokens'])) {
+    $_SESSION['edit_tokens'] = [];
+}
+
+// Ambil data karyawan
 $result = mysqli_query($koneksi, "SELECT * FROM data_karyawan");
 ?>
 
@@ -76,6 +82,14 @@ $result = mysqli_query($koneksi, "SELECT * FROM data_karyawan");
                 $jabatan = htmlspecialchars($data['jabatan'], ENT_QUOTES);
                 $alamat = htmlspecialchars($data['alamat'], ENT_QUOTES);
                 $no_telp = htmlspecialchars($data['no_telp'], ENT_QUOTES);
+
+                // buat token unik untuk tiap karyawan (one-time token)
+                $token = bin2hex(random_bytes(16));
+                $_SESSION['edit_tokens'][$token] = [
+                    'id' => $id,
+                    'expires' => time() + 300 // 5 menit
+                ];
+
                 echo "
                 <tr class='border-b hover:bg-gray-50 transition'>
                   <td class='py-2 px-3 font-semibold'>{$no}</td>
@@ -84,7 +98,7 @@ $result = mysqli_query($koneksi, "SELECT * FROM data_karyawan");
                   <td class='py-2 px-3'>{$alamat}</td>
                   <td class='py-2 px-3'>{$no_telp}</td>
                   <td class='py-2 px-3 text-center'>
-                    <button onclick='editData({$id}, \"{$nama}\", \"{$jabatan}\", \"{$alamat}\", \"{$no_telp}\")' class='text-green-600 hover:text-green-800 mx-1'>
+                    <button onclick='editData(\"{$id}\", \"{$nama}\", \"{$jabatan}\", \"{$alamat}\", \"{$no_telp}\", \"{$token}\")' class='text-green-600 hover:text-green-800 mx-1'>
                       <i class=\"ri-edit-2-fill text-xl\"></i>
                     </button>
                     <button onclick='hapusData({$id})' class='text-red-600 hover:text-red-800 mx-1'>
@@ -152,7 +166,7 @@ $result = mysqli_query($koneksi, "SELECT * FROM data_karyawan");
     </div>
 
     <form id="formEdit" class="p-6 space-y-4 flex flex-col">
-      <input type="hidden" name="id" id="edit_id">
+      <input type="hidden" name="ftoken" id="edit_ftoken">
       <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
       <div>
         <label class="block font-semibold mb-1 text-black">Nama
@@ -187,8 +201,8 @@ $result = mysqli_query($koneksi, "SELECT * FROM data_karyawan");
 function openModalTambah() { document.getElementById('modalTambah').classList.remove('hidden'); }
 function closeModalTambah() { document.getElementById('modalTambah').classList.add('hidden'); }
 
-function editData(id, nama, jabatan, alamat, no_telp) {
-    document.getElementById('edit_id').value = id;
+function editData(id, nama, jabatan, alamat, no_telp, token) {
+    document.getElementById('edit_ftoken').value = token; // set one-time token
     document.getElementById('edit_nama').value = nama;
     document.getElementById('edit_jabatan').value = jabatan;
     document.getElementById('edit_alamat').value = alamat;

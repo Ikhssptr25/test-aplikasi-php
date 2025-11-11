@@ -34,22 +34,18 @@ $no_telp = trim($_POST['no_telp'] ?? '');
 // ============================
 // VALIDASI INPUT
 // ============================
-
 // Nama: hanya huruf & spasi
 if (!preg_match('/^[a-zA-Z\s]+$/', $nama)) {
     exit("error: Nama hanya boleh huruf dan spasi");
 }
-
 // Jabatan: hanya huruf & spasi
 if (!preg_match('/^[a-zA-Z\s]+$/', $jabatan)) {
     exit("error: Jabatan hanya boleh huruf dan spasi");
 }
-
 // Alamat: minimal 3 karakter, huruf, angka, spasi, titik, koma, minus, slash /, #
 if (!preg_match('/^[a-zA-Z0-9\s\.,\-\/#]{3,}$/', $alamat)) {
     exit("error: Alamat tidak valid, minimal 3 karakter dan hanya boleh huruf, angka, spasi, titik, koma, minus, slash /, atau #");
 }
-
 // Nomor telepon: harus diawali 628 dan 10-13 digit
 if (!preg_match('/^628\d{7,10}$/', $no_telp)) {
     exit("error: Nomor telepon harus diawali dengan 628 dan diikuti 10-13 digit angka");
@@ -62,7 +58,6 @@ $stmt = mysqli_prepare($koneksi, "SELECT 1 FROM data_karyawan WHERE no_telp=?");
 mysqli_stmt_bind_param($stmt, "s", $no_telp);
 mysqli_stmt_execute($stmt);
 mysqli_stmt_store_result($stmt);
-
 if (mysqli_stmt_num_rows($stmt) > 0) {
     mysqli_stmt_close($stmt);
     exit("error: Nomor telepon sudah terdaftar");
