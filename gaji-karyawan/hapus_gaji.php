@@ -33,7 +33,9 @@ mysqli_stmt_bind_result($stmt, $id_karyawan);
 mysqli_stmt_fetch($stmt);
 mysqli_stmt_close($stmt);
 
-if (!isset($id_karyawan)) exit("error: Gaji tidak ditemukan");
+if (!isset($id_karyawan)) {
+    exit("error: Gaji tidak ditemukan");
+}
 
 // HAPUS DATA
 $stmt = mysqli_prepare($koneksi, "DELETE FROM gaji_karyawan WHERE id_gaji=?");
