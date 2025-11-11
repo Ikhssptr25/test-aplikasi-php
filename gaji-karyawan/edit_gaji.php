@@ -28,15 +28,27 @@ $potongan   = str_replace(',', '.', trim($_POST['potongan'] ?? '0'));
 
 // VALIDASI INPUT
 $bulan_list = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
-if ($id_gaji <= 0) exit("error: ID gaji tidak valid");
-if (!in_array($bulan, $bulan_list)) exit("error: Bulan tidak valid");
-if ($tahun < 2000 || $tahun > 2100) exit("error: Tahun tidak valid");
+if ($id_gaji <= 0) {
+    exit("error: ID gaji tidak valid");
+}
+if (!in_array($bulan, $bulan_list)) {
+    exit("error: Bulan tidak valid");
+}
+if ($tahun < 2000 || $tahun > 2100) {
+    exit("error: Tahun tidak valid");
+}
 
 function validasiDecimal($nilai, $field) {
-    if (!is_numeric($nilai)) exit("error: $field harus berupa angka");
+    if (!is_numeric($nilai)) {
+        exit("error: $field harus berupa angka");
+    }
     $nilai = round((float)$nilai, 2);
-    if ($nilai < 0) exit("error: $field tidak boleh negatif");
-    if ($nilai > 9999999999.99) exit("error: $field terlalu besar");
+    if ($nilai < 0) {
+        exit("error: $field tidak boleh negatif");
+    }
+    if ($nilai > 9999999999.99) {
+        exit("error: $field terlalu besar");
+    }
     return $nilai;
 }
 
@@ -54,7 +66,9 @@ mysqli_stmt_bind_result($stmt, $id_karyawan);
 mysqli_stmt_fetch($stmt);
 mysqli_stmt_close($stmt);
 
-if (!isset($id_karyawan)) exit("error: Gaji tidak ditemukan");
+if (!isset($id_karyawan)) {
+    exit("error: Gaji tidak ditemukan");
+}
 
 // CEK DUPLIKAT PERIODE (kecuali record ini)
 $stmt = mysqli_prepare($koneksi, "SELECT 1 FROM gaji_karyawan WHERE id_karyawan=? AND bulan=? AND tahun=? AND id_gaji<>?");

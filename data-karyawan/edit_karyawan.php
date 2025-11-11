@@ -30,10 +30,18 @@ $no_telp = trim($_POST['no_telp'] ?? '');
 // ============================
 // VALIDASI INPUT
 // ============================
-if (!preg_match('/^[a-zA-Z\s]+$/', $nama)) exit("error: Nama hanya boleh huruf dan spasi");
-if (!preg_match('/^[a-zA-Z\s]+$/', $jabatan)) exit("error: Jabatan hanya boleh huruf dan spasi");
-if (!preg_match('/^[a-zA-Z0-9\s\.,\-\/#]{3,}$/', $alamat)) exit("error: Alamat tidak valid");
-if (!preg_match('/^628\d{7,10}$/', $no_telp)) exit("error: Nomor telepon harus diawali 628");
+if (!preg_match('/^[a-zA-Z\s]+$/', $nama)) {
+    exit("error: Nama hanya boleh huruf dan spasi");
+}
+if (!preg_match('/^[a-zA-Z\s]+$/', $jabatan)) {
+    exit("error: Jabatan hanya boleh huruf dan spasi");
+}
+if (!preg_match('/^[a-zA-Z0-9\s\.,\-\/#]{3,}$/', $alamat)) {
+    exit("error: Alamat tidak valid");
+}
+if (!preg_match('/^628\d{7,10}$/', $no_telp)) {
+    exit("error: Nomor telepon harus diawali 628");
+}
 
 // ============================
 // CEK KARYAWAN ADA

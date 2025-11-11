@@ -22,7 +22,9 @@ if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== ($_SESSION['csrf_to
 
 // AMBIL & VALIDASI ID
 $id = isset($_POST['id']) ? (int) trim($_POST['id']) : 0;
-if ($id <= 0) exit("error: ID karyawan tidak valid");
+if ($id <= 0) {
+    exit("error: ID karyawan tidak valid");
+}
 
 // CEK KARYAWAN ADA
 $stmt = mysqli_prepare($koneksi, "SELECT 1 FROM data_karyawan WHERE id=?");

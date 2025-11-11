@@ -7,8 +7,12 @@ include_once "../database/koneksi.php";
 // ============================
 $max_attempts = 5; // maksimal percobaan login
 $lock_time    = 120; // lock 5 menit (300 detik)
-if (!isset($_SESSION['login_attempts'])) $_SESSION['login_attempts'] = 0;
-if (!isset($_SESSION['last_attempt_time'])) $_SESSION['last_attempt_time'] = 0;
+if (!isset($_SESSION['login_attempts'])) {
+    $_SESSION['login_attempts'] = 0;
+}
+if (!isset($_SESSION['last_attempt_time'])) {
+    $_SESSION['last_attempt_time'] = 0;
+}
 
 // cek lock
 if ($_SESSION['login_attempts'] >= $max_attempts && (time() - $_SESSION['last_attempt_time']) < $lock_time) {

@@ -166,29 +166,25 @@ $csrf_token = $_SESSION['csrf_token'];
   </div>
 </div>
 
-<!-- Modal Edit (sama dengan Tambah, sudah disesuaikan) -->
+<!-- Modal Edit -->
 <div id="modalEdit" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
   <div class="bg-white w-full max-w-md rounded-lg shadow-lg overflow-hidden">
     <div class="bg-green-600 text-white text-center py-3 text-lg font-semibold">Edit Data Gaji</div>
     <form id="formEdit" method="POST" class="p-6 space-y-4">
       <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf_token) ?>">
       <input type="hidden" name="id_gaji" id="edit_id_gaji">
+      <input type="hidden" name="id_karyawan" id="hidden_id_karyawan">
+
       <div>
-        <label for="edit_id_karyawan" class="block font-semibold mb-1">Nama Karyawan</label>
-        <select id="edit_id_karyawan" name="id_karyawan" class="border border-gray-400 rounded w-full px-3 py-2" required onchange="isiOtomatisEdit()">
-          <option value="">-- Pilih Karyawan --</option>
-          <?php
-          mysqli_data_seek($karyawan, 0);
-          while ($k = mysqli_fetch_assoc($karyawan)) {
-              echo "<option value='".(int)$k['id']."' data-no='".htmlspecialchars($k['no_telp'])."'>".htmlspecialchars($k['nama'])."</option>";
-          }
-          ?>
-        </select>
+        <label class="block font-semibold mb-1">Nama Karyawan</label>
+        <input id="edit_nama_karyawan" type="text" class="border border-gray-400 rounded w-full px-3 py-2 bg-gray-100" readonly>
       </div>
+
       <div>
         <label class="block font-semibold mb-1">No. Telepon</label>
-        <input id="no_telp_edit" type="text" class="border border-gray-400 rounded w-full px-3 py-2 bg-gray-100" readonly placeholder="Otomatis terisi">
+        <input id="no_telp_edit" type="text" class="border border-gray-400 rounded w-full px-3 py-2 bg-gray-100" readonly>
       </div>
+
       <div class="flex gap-2">
         <div class="flex-1">
           <label for="edit_bulan" class="block font-semibold mb-1">Bulan</label>
@@ -201,18 +197,20 @@ $csrf_token = $_SESSION['csrf_token'];
           <input id="edit_tahun" name="tahun" type="number" min="2000" max="2100" value="<?= date('Y') ?>" class="border border-gray-400 rounded w-full px-3 py-2" required>
         </div>
       </div>
+
       <div>
         <label for="edit_gaji_pokok" class="block font-semibold mb-1">Gaji Pokok</label>
-        <input id="edit_gaji_pokok" name="gaji_pokok" type="number" min="0" step="0.01" value="0" class="border border-gray-400 rounded w-full px-3 py-2" required>
+        <input id="edit_gaji_pokok" name="gaji_pokok" type="number" min="0" step="0.01" class="border border-gray-400 rounded w-full px-3 py-2" required>
       </div>
       <div>
         <label for="edit_tunjangan" class="block font-semibold mb-1">Tunjangan</label>
-        <input id="edit_tunjangan" name="tunjangan" type="number" min="0" step="0.01" value="0" class="border border-gray-400 rounded w-full px-3 py-2" required>
+        <input id="edit_tunjangan" name="tunjangan" type="number" min="0" step="0.01" class="border border-gray-400 rounded w-full px-3 py-2" required>
       </div>
       <div>
         <label for="edit_potongan" class="block font-semibold mb-1">Potongan</label>
-        <input id="edit_potongan" name="potongan" type="number" min="0" step="0.01" value="0" class="border border-gray-400 rounded w-full px-3 py-2" required>
+        <input id="edit_potongan" name="potongan" type="number" min="0" step="0.01" class="border border-gray-400 rounded w-full px-3 py-2" required>
       </div>
+
       <div class="flex justify-end space-x-3 mt-4">
         <button type="button" onclick="closeModalEdit()" class="bg-black text-white px-4 py-2 rounded-full">Kembali</button>
         <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded-full">Update</button>
@@ -220,6 +218,7 @@ $csrf_token = $_SESSION['csrf_token'];
     </form>
   </div>
 </div>
+
 
 <script>
 const CSRF_TOKEN = <?= json_encode($csrf_token) ?>;
@@ -237,17 +236,27 @@ function isiOtomatisEdit(){
 function openModalTambah(){ document.getElementById('modalTambah').classList.remove('hidden'); }
 function closeModalTambah(){ document.getElementById('modalTambah').classList.add('hidden'); }
 
-function openModalEdit(id_gaji, id_karyawan, bulan, tahun, gaji_pokok, tunjangan, potongan){
+function openModalEdit(id_gaji, id_karyawan, bulan, tahun, gaji_pokok, tunjangan, potongan) {
   document.getElementById('modalEdit').classList.remove('hidden');
   document.getElementById('edit_id_gaji').value = id_gaji;
-  document.getElementById('edit_id_karyawan').value = id_karyawan;
-  isiOtomatisEdit();
+  document.getElementById('hidden_id_karyawan').value = id_karyawan;
+
+  // Ambil nama & no_telp dari tabel
+  const row = Array.from(document.querySelectorAll('tbody tr')).find(tr => 
+    tr.querySelector('button[onclick*="'+id_gaji+'"]')
+  );
+  const nama = row?.children[0]?.innerText || '';
+  const no_telp = row?.children[1]?.innerText || '';
+
+  document.getElementById('edit_nama_karyawan').value = nama;
+  document.getElementById('no_telp_edit').value = no_telp;
   document.getElementById('edit_bulan').value = bulan;
   document.getElementById('edit_tahun').value = tahun;
   document.getElementById('edit_gaji_pokok').value = gaji_pokok;
   document.getElementById('edit_tunjangan').value = tunjangan;
   document.getElementById('edit_potongan').value = potongan;
 }
+
 function closeModalEdit(){ document.getElementById('modalEdit').classList.add('hidden'); }
 
 function hapusData(id_gaji){
