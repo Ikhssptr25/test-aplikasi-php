@@ -1,5 +1,23 @@
 <?php
+session_start();
+if (!isset($_SESSION['user_id'])) {
+    header("Location: ../user/login.php");
+    exit();
+}
+
 include_once "../database/koneksi.php";
+
+// Buat CSRF token jika belum ada
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+
+// Inisialisasi session token edit
+if (!isset($_SESSION['edit_tokens'])) {
+    $_SESSION['edit_tokens'] = [];
+}
+
+// Ambil data karyawan
 $result = mysqli_query($koneksi, "SELECT * FROM data_karyawan");
 ?>
 
@@ -13,42 +31,34 @@ $result = mysqli_query($koneksi, "SELECT * FROM data_karyawan");
 </head>
 <body class="min-h-screen flex flex-col bg-gradient-to-b from-green-400 to-green-100 font-sans">
 
-   <!-- Header -->
-  <header class="bg-white shadow-md flex justify-between items-center px-1 py-1 border-b border-gray-200">
+<header class="bg-white shadow-md flex justify-between items-center px-1 py-1 border-b border-gray-200">
     <h1 class="text-2xl font-bold text-gray-800 px-12">
-      <span class=" text-gray-700">Z.</span><a href="../index.php" class="text-green-600">Corporate</a>
+      <span class="text-gray-700">Z.</span><span class="text-green-600">Corporate</span>
     </h1>
-    <img src="../assets/logo.png" alt="Logo" class="w-110 h-14 px-10">
-  </header>
+    <div class="flex items-center gap-4 mr-2">
+        <img src="../assets/logo.png" alt="Logo" class="w-110 h-14 px-10 mr-0">
+        <a href="../user/logout.php" class="flex items-center gap-2 text-black px-4 py-2 mt-5 rounded-lg text-sm font-semibold">
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                    d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6A2.25 2.25 0 005.25 5.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
+            </svg>
+            keluar
+        </a>
+    </div>
+</header>
 
-<!-- Main -->
 <main class="flex-1 px-4 md:px-10 py-10">
-  <!-- CONTAINER UTAMA: tombol + card di dalam sini -->
   <div class="w-full max-w-6xl mx-auto">
-    
-    <!-- Tombol Navigasi -->
-    <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mb-6">
-      <a href="../index.php"
-         class="w-full sm:w-auto text-center bg-black text-white px-5 py-2 font-semibold hover:bg-gray-800 transition rounded-sm">
-        Kembali
-      </a>
 
-      <a href="../gaji-karyawan/gaji.php"
-         class="w-full sm:w-auto text-center bg-white text-green-600 border border-green-600 px-5 py-2 font-semibold hover:bg-green-50 transition rounded-sm">
-        Gaji Karyawan
-      </a>
+    <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mb-6">
+      <a href="../index.php" class="w-full sm:w-auto text-center bg-black text-white px-5 py-2 font-semibold hover:bg-gray-800 transition rounded-sm">Kembali</a>
+      <a href="../gaji-karyawan/gaji.php" class="w-full sm:w-auto text-center bg-white text-green-600 border border-green-600 px-5 py-2 font-semibold hover:bg-green-50 transition rounded-sm">Gaji Karyawan</a>
     </div>
 
-    <!-- Card Tabel -->
     <div class="bg-white shadow-lg w-full p-8 rounded-md">
       <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-6">
-        <h2 class="text-lg font-bold tracking-widest text-gray-800 border-b pb-2">
-          KELOLA DATA KARYAWAN
-        </h2>
-        <button onclick="openModalTambah()"
-                class="bg-green-600 text-white px-5 py-2 rounded-full font-semibold hover:bg-green-700 transition">
-          Add Data
-        </button>
+        <h2 class="text-lg font-bold tracking-widest text-gray-800 border-b pb-2">KELOLA DATA KARYAWAN</h2>
+        <button onclick="openModalTambah()" class="bg-green-600 text-white px-5 py-2 rounded-full font-semibold hover:bg-green-700 transition">Add Data</button>
       </div>
 
       <div class="overflow-x-auto">
@@ -67,25 +77,36 @@ $result = mysqli_query($koneksi, "SELECT * FROM data_karyawan");
             <?php
             $no = 1;
             while ($data = mysqli_fetch_array($result)) {
-              echo "
-              <tr class='border-b hover:bg-gray-50 transition'>
-                <td class='py-2 px-3 font-semibold'>{$no}</td>
-                <td class='py-2 px-3'>{$data['nama']}</td>
-                <td class='py-2 px-3'>{$data['jabatan']}</td>
-                <td class='py-2 px-3'>{$data['alamat']}</td>
-                <td class='py-2 px-3'>{$data['no_telp']}</td>
-                <td class='py-2 px-3 text-center'>
-                  <button onclick='editData({$data['id']}, \"{$data['nama']}\", \"{$data['jabatan']}\", \"{$data['alamat']}\", \"{$data['no_telp']}\")'
-                          class='text-green-600 hover:text-green-800 mx-1'>
-                    <i class=\"ri-edit-2-fill text-xl\"></i>
-                  </button>
-                  <button onclick='hapusData({$data['id']})'
-                          class='text-red-600 hover:text-red-800 mx-1'>
-                    <i class=\"ri-delete-bin-5-fill text-xl\"></i>
-                  </button>
-                </td>
-              </tr>";
-              $no++;
+                $id = $data['id'];
+                $nama = htmlspecialchars($data['nama'], ENT_QUOTES);
+                $jabatan = htmlspecialchars($data['jabatan'], ENT_QUOTES);
+                $alamat = htmlspecialchars($data['alamat'], ENT_QUOTES);
+                $no_telp = htmlspecialchars($data['no_telp'], ENT_QUOTES);
+
+                // buat token unik untuk tiap karyawan (one-time token)
+                $token = bin2hex(random_bytes(16));
+                $_SESSION['edit_tokens'][$token] = [
+                    'id' => $id,
+                    'expires' => time() + 300 // 5 menit
+                ];
+
+                echo "
+                <tr class='border-b hover:bg-gray-50 transition'>
+                  <td class='py-2 px-3 font-semibold'>{$no}</td>
+                  <td class='py-2 px-3'>{$nama}</td>
+                  <td class='py-2 px-3'>{$jabatan}</td>
+                  <td class='py-2 px-3'>{$alamat}</td>
+                  <td class='py-2 px-3'>{$no_telp}</td>
+                  <td class='py-2 px-3 text-center'>
+                    <button onclick='editData(\"{$id}\", \"{$nama}\", \"{$jabatan}\", \"{$alamat}\", \"{$no_telp}\", \"{$token}\")' class='text-green-600 hover:text-green-800 mx-1'>
+                      <i class=\"ri-edit-2-fill text-xl\"></i>
+                    </button>
+                    <button onclick='hapusData({$id})' class='text-red-600 hover:text-red-800 mx-1'>
+                      <i class=\"ri-delete-bin-5-fill text-xl\"></i>
+                    </button>
+                  </td>
+                </tr>";
+                $no++;
             }
             ?>
           </tbody>
@@ -95,200 +116,135 @@ $result = mysqli_query($koneksi, "SELECT * FROM data_karyawan");
   </div>
 </main>
 
-  <!-- Footer -->
-  <footer class="text-center text-gray-700 text-sm py-4">
+<footer class="text-center text-gray-700 text-sm py-4">
     © 2025 Intern. All rights reserved.
-  </footer>
+</footer>
 
-  <!-- Modal Tambah Data -->
+<!-- Modal Tambah Data -->
 <div id="modalTambah" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
   <div class="bg-white w-full max-w-md rounded-xl shadow-xl">
-    <!-- Header -->
     <div class="bg-green-600 text-white text-center py-3 rounded-t-xl text-lg font-semibold shadow-md shadow-green-300">
       Tambah Data Karyawan
     </div>
 
-    <!-- Form -->
     <form id="formTambah" class="p-6 space-y-4 flex flex-col">
-    <div>
+      <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
+      <div>
         <label class="block font-semibold mb-1 text-black">Nama
-        <input type="text" name="nama" class="border border-green-400 focus:border-green-600 focus:ring-green-500 rounded w-full px-3 py-2 focus:outline-none" required>
+          <input type="text" name="nama" class="border border-green-400 rounded w-full px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500" required>
         </label>
-    </div>
-    <div>
+      </div>
+      <div>
         <label class="block font-semibold mb-1 text-black">Jabatan
-        <input type="text" name="jabatan" class="border border-green-400 focus:border-green-600 focus:ring-green-500 rounded w-full px-3 py-2 focus:outline-none" required>
+          <input type="text" name="jabatan" class="border border-green-400 rounded w-full px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500" required>
         </label>
       </div>
-    <div>
+      <div>
         <label class="block font-semibold mb-1 text-black">Alamat
-        <input type="text" name="alamat" class="border border-green-400 focus:border-green-600 focus:ring-green-500 rounded w-full px-3 py-2 focus:outline-none" required>
+          <input type="text" name="alamat" class="border border-green-400 rounded w-full px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500" required>
         </label>
       </div>
-    <div>
+      <div>
         <label class="block font-semibold mb-1 text-black">No Telp
-        <input type="text" name="no_telp" class="border border-green-400 focus:border-green-600 focus:ring-green-500 rounded w-full px-3 py-2 focus:outline-none" required>
+          <input type="text" name="no_telp" class="border border-green-400 rounded w-full px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500" required>
         </label>
       </div>
 
-    <!-- Tombol Aksi -->
-    <div class="flex justify-end space-x-3 mt-2">
-        <button
-        type="button"
-        onclick="closeModalTambah()"
-        class="px-4 py-2 bg-black text-white border border-green-500 rounded-full  transition font-semibold">
-        Kembali
-        </button>
-        <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded-full ">Simpan</button>
-    </div>
+      <div class="flex justify-end space-x-3 mt-2">
+        <button type="button" onclick="closeModalTambah()" class="px-4 py-2 bg-black text-white border border-green-500 rounded-full font-semibold">Kembali</button>
+        <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded-full">Simpan</button>
+      </div>
     </form>
-
-
   </div>
 </div>
 
-
-
-  <!-- Modal Edit Data -->
+<!-- Modal Edit Data -->
 <div id="modalEdit" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-  <div class="bg-white w-full max-w-md  shadow-lg overflow-hidden">
-    <!-- Header -->
-    <div class="bg-green-600 text-white text-center py-3 -t-lg text-lg font-semibold shadow-md">
+  <div class="bg-white w-full max-w-md shadow-lg overflow-hidden">
+    <div class="bg-green-600 text-white text-center py-3 text-lg font-semibold shadow-md">
       Edit Data Karyawan
     </div>
 
-    <!-- Form -->
     <form id="formEdit" class="p-6 space-y-4 flex flex-col">
-      <input type="hidden" name="id" id="edit_id">
-
+      <input type="hidden" name="ftoken" id="edit_ftoken">
+      <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
       <div>
         <label class="block font-semibold mb-1 text-black">Nama
-        <input type="text" name="nama" id="edit_nama"
-          class="border border-green-400 focus:border-green-600 focus:ring-green-500 rounded w-full px-3 py-2 focus:outline-none" required>
+          <input type="text" name="nama" id="edit_nama" class="border border-green-400 rounded w-full px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500" required>
         </label>
-        </div>
-
+      </div>
       <div>
         <label class="block font-semibold mb-1 text-black">Jabatan
-        <input type="text" name="jabatan" id="edit_jabatan"
-          class="border border-green-400 focus:border-green-600 focus:ring-green-500 rounded w-full px-3 py-2 focus:outline-none" required>
+          <input type="text" name="jabatan" id="edit_jabatan" class="border border-green-400 rounded w-full px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500" required>
         </label>
-        </div>
-
+      </div>
       <div>
         <label class="block font-semibold mb-1 text-black">Alamat
-        <input type="text" name="alamat" id="edit_alamat"
-          class="border border-green-400 focus:border-green-600 focus:ring-green-500 rounded w-full px-3 py-2 focus:outline-none" required>
+          <input type="text" name="alamat" id="edit_alamat" class="border border-green-400 rounded w-full px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500" required>
         </label>
-        </div>
-
+      </div>
       <div>
         <label class="block font-semibold mb-1 text-black">No Telp
-        <input type="text" name="no_telp" id="edit_no_telp"
-          class="border border-green-400 focus:border-green-600 focus:ring-green-500 rounded w-full px-3 py-2 focus:outline-none" required>
+          <input type="text" name="no_telp" id="edit_no_telp" class="border border-green-400 rounded w-full px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500" required>
         </label>
-        </div>
+      </div>
 
-      <!-- Tombol Aksi -->
       <div class="flex justify-end space-x-3 mt-2">
-        <button
-          type="button"
-          onclick="closeModalEdit()"
-          class="px-4 py-2 bg-black text-white border border-green-500 rounded-full  transition font-semibold">
-          Kembali
-        </button>
-        <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded-full ">Update</button>
+        <button type="button" onclick="closeModalEdit()" class="px-4 py-2 bg-black text-white border border-green-500 rounded-full font-semibold">Kembali</button>
+        <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded-full">Update</button>
       </div>
     </form>
   </div>
 </div>
 
-<div id="modalHapus" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-    <div class="bg-white rounded-lg shadow-lg w-full max-w-sm p-6 text-center">
-      <h2 class="text-xl font-semibold text-gray-800 mb-4">Konfirmasi Hapus</h2>
-      <p class="text-gray-600 mb-6">Apakah Anda yakin ingin menghapus data ini?</p>
-      <div class="flex justify-center space-x-4">
-        <button onclick="closeModalHapus()" class="bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-800">Batal</button>
-        <button id="btnConfirmHapus" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">Hapus</button>
-      </div>
-    </div>
-  </div>
+<script>
+function openModalTambah() { document.getElementById('modalTambah').classList.remove('hidden'); }
+function closeModalTambah() { document.getElementById('modalTambah').classList.add('hidden'); }
 
-  <script>
-    // ===== Modal Tambah =====
-    function openModalTambah() { document.getElementById('modalTambah').classList.remove('hidden'); }
-    function closeModalTambah() { document.getElementById('modalTambah').classList.add('hidden'); }
+function editData(id, nama, jabatan, alamat, no_telp, token) {
+    document.getElementById('edit_ftoken').value = token; // set one-time token
+    document.getElementById('edit_nama').value = nama;
+    document.getElementById('edit_jabatan').value = jabatan;
+    document.getElementById('edit_alamat').value = alamat;
+    document.getElementById('edit_no_telp').value = no_telp;
+    document.getElementById('modalEdit').classList.remove('hidden');
+}
+function closeModalEdit() { document.getElementById('modalEdit').classList.add('hidden'); }
 
-    // ===== Modal Edit =====
-    function editData(id, nama, jabatan, alamat, no_telp) {
-      document.getElementById('edit_id').value = id;
-      document.getElementById('edit_nama').value = nama;
-      document.getElementById('edit_jabatan').value = jabatan;
-      document.getElementById('edit_alamat').value = alamat;
-      document.getElementById('edit_no_telp').value = no_telp;
-      document.getElementById('modalEdit').classList.remove('hidden');
-    }
-    function closeModalEdit() { document.getElementById('modalEdit').classList.add('hidden'); }
-
-  let idGajiHapus = null;
-  function hapusData(id) {
-    idGajiHapus = id;
-    document.getElementById('modalHapus').classList.remove('hidden');
-  }
-  function closeModalHapus() {
-    document.getElementById('modalHapus').classList.add('hidden');
-    idGajiHapus = null;
-  }
-
-    // Tambah data
-    document.getElementById('formTambah').addEventListener('submit', function(e) {
-      e.preventDefault();
-      const formData = new FormData(this);
-      fetch('tambah_karyawan.php', { method: 'POST', body: formData })
-      .then(res => res.text())
-      .then(response => {
-        if (response.includes('success')) {
-          alert('Data berhasil ditambahkan!');
-          closeModalTambah();
-          location.reload();
-        } else { alert('Gagal menambah data: ' + response); }
-      });
-    });
-
-    // Update data
-    document.getElementById('formEdit').addEventListener('submit', function(e) {
-      e.preventDefault();
-      const formData = new FormData(this);
-      fetch('edit_karyawan.php', { method: 'POST', body: formData })
-      .then(res => res.text())
-      .then(response => {
-        if (response.includes('success')) {
-          alert('Data berhasil diperbarui!');
-          closeModalEdit();
-          location.reload();
-        } else { alert('Gagal memperbarui data: ' + response); }
-      });
-    });
-
-    // Hapus data
-    function hapusData(id) {
-      if (confirm("Yakin ingin menghapus data ini?")) {
-        fetch('hapus_karyawan.php', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-          body: 'id=' + id
-        })
+// ===== Tambah Data =====
+document.getElementById('formTambah').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const noTelp = this.querySelector('input[name="no_telp"]').value.trim();
+    if (!/^628\d{7,10}$/.test(noTelp)) { alert("Nomor telepon harus diawali dengan 628 dan diikuti 10-13 digit angka."); return; }
+    const formData = new FormData(this);
+    fetch('tambah_karyawan.php', { method:'POST', body:formData })
         .then(res => res.text())
-        .then(response => {
-          if (response.includes('success')) {
-            alert('Data berhasil dihapus!');
-            location.reload();
-          } else {
-            alert('Gagal menghapus data: ' + response);
-          }
-        });
-      }
+        .then(resp => { if(resp.includes('success')) { alert('Data berhasil ditambahkan!'); closeModalTambah(); location.reload(); } else { alert('Gagal menambah data: '+resp); } });
+});
+
+// ===== Edit Data =====
+document.getElementById('formEdit').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const noTelp = this.querySelector('input[name="no_telp"]').value.trim();
+    if (!/^628\d{7,10}$/.test(noTelp)) { alert("Nomor telepon harus diawali dengan 628 dan diikuti 10-13 digit angka."); return; }
+    const formData = new FormData(this);
+    fetch('edit_karyawan.php', { method:'POST', body:formData })
+        .then(res => res.text())
+        .then(resp => { if(resp.includes('success')) { alert('Data berhasil diperbarui!'); closeModalEdit(); location.reload(); } else { alert('Gagal memperbarui data: '+resp); } });
+});
+
+// ===== Hapus Data =====
+function hapusData(id) {
+    if (confirm("Yakin ingin menghapus data ini?")) {
+        const formData = new FormData();
+        formData.append('id', id);
+        formData.append('csrf_token', '<?= $_SESSION['csrf_token'] ?>');
+        fetch('hapus_karyawan.php', { method:'POST', body:formData })
+            .then(res => res.text())
+            .then(resp => { if(resp.includes('success')) { alert('Data berhasil dihapus!'); location.reload(); } else { alert('Gagal menghapus data: '+resp); } });
     }
-  </script>
+}
+</script>
+
 </body>
 </html>

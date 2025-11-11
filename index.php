@@ -1,4 +1,10 @@
 <?php
+session_start();
+if (!isset($_SESSION['user_id'])) {
+    header("Location: ../user/login.php");
+    exit();
+}
+
 header("Content-Security-Policy: default-src 'self'; script-src 'self' https://cdn.tailwindcss.com; style-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com; img-src 'self' data: https:; font-src 'self' https:; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self';");
 ?>
 
@@ -9,6 +15,8 @@ header("Content-Security-Policy: default-src 'self'; script-src 'self' https://c
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Sistem Penggajian Karyawan</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/heroicons@2.0.13/dist/heroicons.min.js"></script>
+
 </head>
 
 
@@ -19,7 +27,16 @@ header("Content-Security-Policy: default-src 'self'; script-src 'self' https://c
     <h1 class="text-2xl font-bold text-gray-800 px-12">
       <span class=" text-gray-700">Z.</span><span class="text-green-600">Corporate</span>
     </h1>
-    <img src="../assets/logo.png" alt="Logo" class="w-110 h-14 px-10">
+    <div class="flex items-center gap-4 mr-2">
+    <img src="../assets/logo.png" alt="Logo" class="w-110 h-14 px-10 mr-0 ">
+    <a href="user/logout.php" class="flex items-center gap-2 text-black px-4 py-2 mt-5 rounded-lg text-sm font-semibold">
+        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6A2.25 2.25 0 005.25 5.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
+        </svg>
+        keluar
+    </a>
+</div>
   </header>
 
    <!-- Judul -->
