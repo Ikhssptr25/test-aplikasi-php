@@ -12,6 +12,21 @@ if (empty($_SESSION['csrf_token'])) {
     $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 }
 $csrf_token = $_SESSION['csrf_token'];
+
+// Inisialisasi mapping token edit gaji
+if (!isset($_SESSION['edit_gaji_tokens'])) {
+    $_SESSION['edit_gaji_tokens'] = [];
+}
+
+// Ambil data gaji + karyawan
+$query = mysqli_query($koneksi, "
+    SELECT g.*, d.nama, d.no_telp
+    FROM gaji_karyawan g
+    JOIN data_karyawan d ON g.id_karyawan = d.id
+    ORDER BY g.tahun DESC, FIELD(g.bulan,
+        'Januari','Februari','Maret','April','Mei','Juni','Juli',
+        'Agustus','September','Oktober','November','Desember') DESC
+");
 ?>
 
 <!DOCTYPE html>
@@ -69,16 +84,16 @@ $csrf_token = $_SESSION['csrf_token'];
                     </thead>
                     <tbody>
                         <?php
-                        $query = mysqli_query($koneksi, "
-                            SELECT g.*, d.nama, d.no_telp
-                            FROM gaji_karyawan g
-                            JOIN data_karyawan d ON g.id_karyawan = d.id
-                            ORDER BY g.tahun DESC, FIELD(g.bulan,
-                            'Januari','Februari','Maret','April','Mei','Juni','Juli',
-                            'Agustus','September','Oktober','November','Desember') DESC
-                        ");
+                        $bulan_list = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
                         while ($data = mysqli_fetch_assoc($query)):
                             $total = max(0, (float)$data['gaji_pokok'] + (float)$data['tunjangan'] - (float)$data['potongan']);
+
+                            // Generate token untuk edit
+                            $token = bin2hex(random_bytes(16));
+                            $_SESSION['edit_gaji_tokens'][$token] = [
+                                'id_gaji' => (int)$data['id_gaji'],
+                                'expires' => time() + 300 // berlaku 5 menit
+                            ];
                         ?>
                         <tr class="border-b hover:bg-gray-50">
                             <td class="py-2 px-2 whitespace-nowrap truncate"><?= htmlspecialchars($data['nama']) ?></td>
@@ -89,7 +104,16 @@ $csrf_token = $_SESSION['csrf_token'];
                             <td class="py-2 px-2 whitespace-nowrap">Rp. <?= number_format((float)$data['potongan'],2,',','.') ?></td>
                             <td class="py-2 px-2 whitespace-nowrap font-semibold">Rp. <?= number_format($total,2,',','.') ?></td>
                             <td class="py-2 px-2 text-center whitespace-nowrap">
-                                <button onclick='openModalEdit(<?= $data['id_gaji'] ?>, <?= json_encode($data['id_karyawan']) ?>, <?= json_encode($data['bulan']) ?>, <?= $data['tahun'] ?>, <?= (float)$data['gaji_pokok'] ?>, <?= (float)$data['tunjangan'] ?>, <?= (float)$data['potongan'] ?>)' class='text-green-600 hover:text-green-800 mx-1'>
+                                <button onclick='openModalEdit(
+                                    <?= $data['id_gaji'] ?>,
+                                    <?= json_encode($data['id_karyawan']) ?>,
+                                    <?= json_encode($data['bulan']) ?>,
+                                    <?= $data['tahun'] ?>,
+                                    <?= (float)$data['gaji_pokok'] ?>,
+                                    <?= (float)$data['tunjangan'] ?>,
+                                    <?= (float)$data['potongan'] ?>,
+                                    "<?= $token ?>"
+                                )' class='text-green-600 hover:text-green-800 mx-1'>
                                     <i class="ri-edit-2-fill text-xl"></i>
                                 </button>
                                 <button onclick='hapusData(<?= $data['id_gaji'] ?>)' class='text-red-600 hover:text-red-800 mx-1'>
@@ -106,8 +130,6 @@ $csrf_token = $_SESSION['csrf_token'];
 </main>
 
 <footer class="mt-10 text-gray-600 text-sm mb-6 text-center">© 2025 Intern. All rights reserved.</footer>
-
-<!-- Modal Tambah & Edit (sama seperti versi sebelumnya, sudah include no_telp otomatis) -->
 
 <!-- Modal Tambah -->
 <div id="modalTambah" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -135,10 +157,7 @@ $csrf_token = $_SESSION['csrf_token'];
         <div class="flex-1">
           <label for="bulan" class="block font-semibold mb-1">Bulan</label>
           <select id="bulan" name="bulan" required class="border border-gray-400 rounded w-full px-3 py-2">
-            <?php
-            $bulan_list = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
-            foreach ($bulan_list as $b) echo "<option value='$b'>$b</option>";
-            ?>
+            <?php foreach ($bulan_list as $b) echo "<option value='$b'>$b</option>"; ?>
           </select>
         </div>
         <div class="flex-1">
@@ -174,12 +193,12 @@ $csrf_token = $_SESSION['csrf_token'];
       <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf_token) ?>">
       <input type="hidden" name="id_gaji" id="edit_id_gaji">
       <input type="hidden" name="id_karyawan" id="hidden_id_karyawan">
+      <input type="hidden" name="ftoken" id="edit_ftoken">
 
       <div>
         <label class="block font-semibold mb-1">Nama Karyawan</label>
         <input id="edit_nama_karyawan" type="text" class="border border-gray-400 rounded w-full px-3 py-2 bg-gray-100" readonly>
       </div>
-
       <div>
         <label class="block font-semibold mb-1">No. Telepon</label>
         <input id="no_telp_edit" type="text" class="border border-gray-400 rounded w-full px-3 py-2 bg-gray-100" readonly>
@@ -219,29 +238,24 @@ $csrf_token = $_SESSION['csrf_token'];
   </div>
 </div>
 
-
 <script>
 const CSRF_TOKEN = <?= json_encode($csrf_token) ?>;
 
+// AUTO-FILL NO TELP UNTUK ADD GAJI
 function isiOtomatisTambah(){
   const select = document.getElementById('id_karyawan');
   document.getElementById('no_telp_tambah').value = select.options[select.selectedIndex]?.dataset.no || '';
 }
 
-function isiOtomatisEdit(){
-  const select = document.getElementById('edit_id_karyawan');
-  document.getElementById('no_telp_edit').value = select.options[select.selectedIndex]?.dataset.no || '';
-}
-
 function openModalTambah(){ document.getElementById('modalTambah').classList.remove('hidden'); }
 function closeModalTambah(){ document.getElementById('modalTambah').classList.add('hidden'); }
 
-function openModalEdit(id_gaji, id_karyawan, bulan, tahun, gaji_pokok, tunjangan, potongan) {
+function openModalEdit(id_gaji, id_karyawan, bulan, tahun, gaji_pokok, tunjangan, potongan, token){
   document.getElementById('modalEdit').classList.remove('hidden');
   document.getElementById('edit_id_gaji').value = id_gaji;
   document.getElementById('hidden_id_karyawan').value = id_karyawan;
+  document.getElementById('edit_ftoken').value = token;
 
-  // Ambil nama & no_telp dari tabel
   const row = Array.from(document.querySelectorAll('tbody tr')).find(tr => 
     tr.querySelector('button[onclick*="'+id_gaji+'"]')
   );

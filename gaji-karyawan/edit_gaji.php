@@ -19,18 +19,27 @@ if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== ($_SESSION['csrf_to
 }
 
 // AMBIL INPUT
-$id_gaji    = isset($_POST['id_gaji']) ? (int)$_POST['id_gaji'] : 0;
+$token      = $_POST['ftoken'] ?? '';
 $bulan      = trim($_POST['bulan'] ?? '');
 $tahun      = (int)($_POST['tahun'] ?? 0);
 $gaji_pokok = str_replace(',', '.', trim($_POST['gaji_pokok'] ?? '0'));
 $tunjangan  = str_replace(',', '.', trim($_POST['tunjangan'] ?? '0'));
 $potongan   = str_replace(',', '.', trim($_POST['potongan'] ?? '0'));
 
+// VALIDASI TOKEN
+if (!isset($_SESSION['edit_gaji_tokens'][$token])) {
+    exit("error: Token edit tidak valid");
+}
+$token_data = $_SESSION['edit_gaji_tokens'][$token];
+if ($token_data['expires'] < time()) {
+    unset($_SESSION['edit_gaji_tokens'][$token]);
+    exit("error: Token edit sudah kadaluarsa");
+}
+$id_gaji = (int)$token_data['id_gaji'];
+unset($_SESSION['edit_gaji_tokens'][$token]); // hapus token setelah dipakai
+
 // VALIDASI INPUT
 $bulan_list = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
-if ($id_gaji <= 0) {
-    exit("error: ID gaji tidak valid");
-}
 if (!in_array($bulan, $bulan_list)) {
     exit("error: Bulan tidak valid");
 }
